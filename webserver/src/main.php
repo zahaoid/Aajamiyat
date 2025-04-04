@@ -10,6 +10,7 @@ class Main extends Macro {
         <header>
             <h1>
                 $appname
+                <?php echo "teest"w ?>
             </h1>
             $navigation
         </header>

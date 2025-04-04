@@ -20,9 +20,10 @@ $uri = $_SERVER['REQUEST_URI'];
 // }
 
 $appname = 'معجم الألفاظ الأعجمية المعربة والدخيلة';
+
+
 $navigation = new Navigation();
 $main = new Main($appname, $navigation);
 $base = new Base($appname, $main);
-echo $base;
+eval ( "?>" . $base);
 
-echo 'test';
