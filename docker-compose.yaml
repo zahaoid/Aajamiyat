@@ -1,0 +1,46 @@
+
+
+services:
+  webserver:
+    build: ./webserver/
+    container_name: web-server
+    ports:
+      - "8080:80"
+    networks:
+      - php-apache-mysql-network
+    depends_on:
+      - mysql
+    env_file: 
+      - "common/secrets.env"
+    volumes:
+      - ./webserver/src:/var/www/html/
+    #environment:
+      #MYSQL_USER: superduper
+      #MYSQL_PASSWORD: changeme
+    #tty: true
+    #stdin_open: true
+    command: [sh, -c, "php /var/www/html/database/startup.php && apache2-foreground"]
+  mysql:
+    image: mysql:5.7
+    container_name: mysql-server
+    env_file: 
+      - "common/secrets.env"
+    #environment:
+      #MYSQL_ROOT_PASSWORD: changeme
+      #MYSQL_RANDOM_ROOT_PASSWORD: yes
+      #MYSQL_DATABASE: NewAndShiny
+      #MYSQL_USER: superduper
+      #MYSQL_PASSWORD: changeme
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-volume:/var/lib/mysql
+    networks:
+      - php-apache-mysql-network
+
+networks:
+  php-apache-mysql-network:
+    driver: bridge
+
+volumes:
+    mysql-volume:
