@@ -12,7 +12,7 @@ function customErrorHandler($errno, $errstr, $errfile, $errline) {
 }
 
 function customExceptionHandler($e){
-    //ob_clean();
+    if(ob_get_length() > 0) ob_clean();
     if ($e instanceof PageNotFoundException) http_response_code(404) ;
     else http_response_code(500);
     error_log('[#######!!!#######] ' . $e);

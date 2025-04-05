@@ -1,11 +1,11 @@
 <?php
 
+const APP_NAME = 'معجم الألفاظ الأعجمية معربها ودخيلها';
 
 
 require_once 'errorHandler.php';
-include_once "main.php";
-require_once 'navigation.php';
-require_once 'base.php';
+require_once 'templates.php';
+require_once 'views.php';
 
 $uri = $_SERVER['REQUEST_URI'];
 
@@ -19,11 +19,12 @@ $uri = $_SERVER['REQUEST_URI'];
 //     throw new PageNotFoundException('Requested URI: $uri');
 // }
 
-$appname = 'معجم الألفاظ الأعجمية المعربة والدخيلة';
+render();
 
+function render(){
 
-$navigation = new Navigation();
-$main = new Main($appname, $navigation);
-$base = new Base($appname, $main);
-eval ( "?>" . $base);
+    ob_start();
+    homePage();
+    ob_flush();
 
+}
