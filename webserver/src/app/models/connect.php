@@ -16,7 +16,8 @@ $config = [
 
 
 // Connect to the database
-function connect($config){
+function connect(){
+    global $config;
     $maxRetries = 10; // Number of retries
     $retryDelay = 1; // Delay in seconds before retrying
 

@@ -12,9 +12,13 @@ function customErrorHandler($errno, $errstr, $errfile, $errline) {
 }
 
 function customExceptionHandler($e){
-    if(ob_get_length() > 0) ob_clean();
-    if ($e instanceof PageNotFoundException) http_response_code(404) ;
-    else http_response_code(500);
+    if(ob_get_length()) ob_clean();
+    if ($e instanceof PageNotFoundException) {
+        showNotFoundPage() ;
+    }
+    else {
+        showErrorPage() ;
+    }
     error_log('[#######!!!#######] ' . $e);
     die();
 }

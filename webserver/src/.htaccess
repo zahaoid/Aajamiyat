@@ -1,5 +1,6 @@
 RewriteEngine On
 
 # Prevent the redirect loop by checking if the request is already for front-controller.php
-RewriteCond %{REQUEST_URI} !^/index.php$
-RewriteRule ^(.*)$ /index.php [L]
+RewriteCond %{REQUEST_URI} !^/app/controllers/index.php$
+RewriteCond %{REQUEST_URI} !^/favicon.ico$
+RewriteRule ^(.*)$ /app/controllers/index.php [L]

@@ -19,7 +19,7 @@ services:
       #MYSQL_PASSWORD: changeme
     #tty: true
     #stdin_open: true
-    command: [sh, -c, "php /var/www/html/app/database/startup.php && apache2-foreground"]
+    command: [sh, -c, "php /var/www/html/app/models/startup.php && apache2-foreground"]
   mysql:
     image: mysql:5.7
     container_name: mysql-server
