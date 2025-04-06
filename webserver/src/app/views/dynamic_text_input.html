@@ -12,7 +12,7 @@
         deleteButton.addEventListener('click', function() {
             const lastInputField = inputFieldsContainer.lastElementChild;
             const minimumAllowed = required? 1 : 0;
-            const alertText =required? 'هذه خانة إلزامية لا يمكن حذفها' : 'حذفت كل الخانات';
+            const alertText =required? 'هذه خانة إلزامية لا يمكن حذفها' : 'قد حذفت كل الخانات';
             if (inputFieldsContainer.childElementCount > minimumAllowed) {
                 inputFieldsContainer.removeChild(lastInputField);
             } else {

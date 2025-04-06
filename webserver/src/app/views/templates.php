@@ -1,11 +1,24 @@
 <?php
 
-interface _Template{
+abstract class _Template{
 
-        public function render();
+        protected abstract function writeToBuffer();
+
+        final public function __tostring(){
+            ob_start();
+            $this->writeToBuffer();
+            return ob_get_clean();
+        }
 }
-class Navigation implements _Template{
-    function render(){
+
+// class _Empty extends _Template{
+
+//     function writeToBuffer(){
+
+//     }
+// }
+class Navigation extends _Template{
+    function writeToBuffer(){
         ?>
             <nav>
                 <ul>
@@ -30,23 +43,23 @@ class Navigation implements _Template{
     }
 }
 
-class _Main implements _Template{
+class _Main extends _Template{
 
-    private _Template $_main;
+    private ?_Template $_main;
     function __construct($_main){
         $this->_main = $_main;
     }
 
-    function render(){
+    function writeToBuffer(){
         ?>
             <header>
                 <h1>
                     <?= APP_NAME ?>
                 </h1>
-                <?php $nav = new Navigation(); $nav->render();  ?>
+                <?= new Navigation()?>
             </header>
             <main>
-                <?php $this->_main->render() ?>
+                <?= $this->_main ?>
             </main>
             <footer>
                 this is a footer
@@ -55,13 +68,13 @@ class _Main implements _Template{
     }
 }
 
-class _Base implements _Template{
+class _Base extends _Template{
 
     private _Template $_body;
     function __construct($_body){
         $this->_body = $_body;
     }
-    function render(){
+    function writeToBuffer(){
 
         ?>
         <!DOCTYPE html>
@@ -71,7 +84,7 @@ class _Base implements _Template{
                     <title><?= APP_NAME ?></title>
                 </head>
                 <body>
-                    <?php $this->_body->render() ?>
+                    <?= $this->_body ?>
                 </body>
             </html>
         <?php
@@ -79,33 +92,26 @@ class _Base implements _Template{
     }
 }
 
-class _Empty implements _Template{
-
-    function render(){
-        echo 'This is an empty test template';
-    }
-}
-
-class _ServerError implements _Template{
-    function render(){
+class _ServerError extends _Template{
+    function writeToBuffer(){
         echo 'نستميحك عذرًا حصل خلل, كرمًا أبلغ القائمين على الصفحة';
     }
 }
 
-class _PageNotFound implements _Template{
-    function render(){
+class _PageNotFound extends _Template{
+    function writeToBuffer(){
         echo 'ما من شيء هنا';
     }
 }
 
-class _DataList implements _Template{
+class _DataList extends _Template{
 
     private $name, $list;
     public function __construct($name, $list) {
         $this->name = $name;
         $this->list = $list;
     }
-    function render(){
+    function writeToBuffer(){
         ?>
             <datalist id=<?= $this->name ?>>
                 <?php foreach($this->list as $element): ?>
@@ -115,7 +121,7 @@ class _DataList implements _Template{
         <?php
     }
 }
-class _EntrySubmissionForm implements _Template{
+class _EntrySubmissionForm extends _Template{
 
     private $origins, $categories, $references;
     function __construct($origins, $categories, $references) {
@@ -124,16 +130,16 @@ class _EntrySubmissionForm implements _Template{
         $this->references = $references;
     }
 
-    function render(){
+    function writeToBuffer(){
         ?>
         <form method="post">
             <fieldset>
                 <legend>اللفظة:</legend>
-                <?php $field = new _DynamicTextInput(name: 'forms', required: true); $field->render() ?>
+                <?= new _DynamicTextInput(name: 'forms', required: true) ?>
             </fieldset>
             <fieldset>
                 <legend>معناها المراد:</legend>
-                <?php $field = new _DynamicTextInput(name: 'meanings'); $field->render() ?>
+                <?= new _DynamicTextInput(name: 'meanings') ?>
             </fieldset>
             <fieldset>
                 <legend>أصل اللفظة:</legend>
@@ -141,21 +147,21 @@ class _EntrySubmissionForm implements _Template{
                 <input type="text" id="original" name="original" required>
                 <label for="origin">من اللغة:</label>
                 <input type="text" id="origin" name="origin" list="origins" required>
-                <?php $datalist = new _DataList(name: 'origins', list: $this->origins); $datalist->render() ?>
+                <?= new _DataList(name: 'origins', list: $this->origins) ?>
             </fieldset>
             <fieldset>
                 <legend>أمثلة:</legend>
-                <?php $field = new _DynamicTextInput(name: 'examples'); $field->render() ?>
+                <?= new _DynamicTextInput(name: 'examples') ?>
             </fieldset>
             <fieldset>
                 <legend>التصانيف:</legend>
-                <?php $field = new _DynamicTextInput(name: 'categories', list: 'categories'); $field->render() ?>
-                <?php $datalist = new _DataList(name: 'categories', list: $this->categories); $datalist->render() ?>
+                <?= new _DynamicTextInput(name: 'categories', list: 'categories') ?>
+                <?= new _DataList(name: 'categories', list: $this->categories) ?>
             </fieldset>
             <fieldset>
                 <legend>المراجع:</legend>
-                <?php $field = new _DynamicTextInput(name: 'references', list: 'references'); $field->render() ?>
-                <?php $datalist = new _DataList(name: 'references', list: $this->references); $datalist->render() ?>
+                <?= new _DynamicTextInput(name: 'references', list: 'references') ?>
+                <?= new _DataList(name: 'references', list: $this->references) ?>
             </fieldset>
             <button>رصد</button>
         </form>
@@ -163,7 +169,7 @@ class _EntrySubmissionForm implements _Template{
     }
 }
 
-class _DynamicTextInput{
+class _DynamicTextInput extends _Template{
 
     private $name, $list, $required;
     function __construct($name, $list = '', $required = false){
@@ -172,7 +178,7 @@ class _DynamicTextInput{
         $this->required = $required;
     }
 
-    function render(){
+    function writeToBuffer(){
         require_once('dynamic_text_input.html');
         ?>
             <div id="<?= $this->name ?>-input-container"></div>
