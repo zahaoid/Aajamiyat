@@ -40,6 +40,39 @@ function getOrigins(){
     return $origins;
 }
 
+function fetchEntry(?int $entry_id = null){
+    $data = array();
+    $connection = connect();
+    $entries_query = sprintf("select * from entries %s ;", isset($entry_id)? "where id = $?" : "" );
+    $stmt = mysqli_prepare($connection, $entries_query);
+    if(isset($entry_id)) mysqli_stmt_bind_param($stmt, "i", $entry_id);
+    mysqli_execute(statement:$stmt );
+    $result = mysqli_stmt_get_result($stmt);
+    $entries = array();
+    while($row = mysqli_fetch_assoc($result)){
+        $data["origin"] = $row["origin"];
+        $data["original"] = $row["original"];
+        $entry_id = $row["id"];
+        
+        //I guess this is safe now? because we overwrote the the only user-input in $entry_id = $row["id"]; 
+        $forms_query = "select form from entry_forms where entry_id = $entry_id;"; 
+        $forms = mysqli_fetch_all(mysqli_query($connection, $forms_query), MYSQLI_ASSOC);
+        
+        $data["forms"] = array_column($forms, "form");
+        // echo "<pre>";
+        // print_r($forms);
+        // echo "</pre>";
+        
+        
+        
+        
+        $entries[] = $data;
+    }
+
+    return $entries;
+
+}
+
 function insertEntry($data){
 
     if(isset($data['origin'], $data['original'], $data['forms'])){

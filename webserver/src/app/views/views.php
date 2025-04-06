@@ -5,6 +5,10 @@ function _homePage() {
     $_main = new _Main(null);
     $_base = new _Base($_main);
     echo $_base;
+    echo "<pre>";
+    // print_r($forms);
+    print_r( fetchEntry() );
+    echo "</pre>";
 }
 
 function _entrySubmission($data){
