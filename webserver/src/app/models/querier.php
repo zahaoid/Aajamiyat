@@ -40,33 +40,66 @@ function getOrigins(){
     return $origins;
 }
 
-function fetchEntry(?int $entry_id = null){
+function fetchEntries(?int $entry_id = null){
+    
     $data = array();
     $connection = connect();
-    $entries_query = sprintf("select * from entries %s ;", isset($entry_id)? "where id = $?" : "" );
-    $stmt = mysqli_prepare($connection, $entries_query);
+    $baseQuery = "select 
+        entries.*, 
+        forms.forms,
+        categories.categories,
+        examples.examples,
+        meanings.meanings,
+        sources.sources
+    from 
+        entries
+    left join (
+        select 
+            entry_id,
+            group_concat(form SEPARATOR '|') as forms
+        from entry_forms
+        group by entry_id
+    ) forms on entries.id = forms.entry_id
+    left join (
+        select 
+            entry_id,
+            group_concat(category SEPARATOR '|') as categories
+        from entry_categories
+        group by entry_id
+    ) categories on entries.id = categories.entry_id
+    left join (
+        select 
+            entry_id,
+            group_concat(example SEPARATOR '|') as examples
+        from entry_examples
+        group by entry_id
+    ) examples on entries.id = examples.entry_id
+    left join (
+        select 
+            entry_id,
+            group_concat(meaning SEPARATOR '|') as meanings
+        from entry_meanings
+        group by entry_id
+    ) meanings on entries.id = meanings.entry_id
+    left join (
+        select 
+            entry_id,
+            group_concat(source SEPARATOR '|') as sources
+        from entry_sources
+        group by entry_id
+    ) sources on entries.id = sources.entry_id
+    %s
+    ;";
+    $baseQuery = sprintf($baseQuery, isset($entry_id)? "where entries.id = ?" : "" );
+    $stmt = mysqli_prepare($connection, $baseQuery);
     if(isset($entry_id)) mysqli_stmt_bind_param($stmt, "i", $entry_id);
     mysqli_execute(statement:$stmt );
     $result = mysqli_stmt_get_result($stmt);
     $entries = array();
+    $headers = array('meanings', 'forms','sources', 'examples', 'categories');
     while($row = mysqli_fetch_assoc($result)){
-        $data["origin"] = $row["origin"];
-        $data["original"] = $row["original"];
-        $entry_id = $row["id"];
-        
-        //I guess this is safe now? because we overwrote the the only user-input in $entry_id = $row["id"]; 
-        $forms_query = "select form from entry_forms where entry_id = $entry_id;"; 
-        $forms = mysqli_fetch_all(mysqli_query($connection, $forms_query), MYSQLI_ASSOC);
-        
-        $data["forms"] = array_column($forms, "form");
-        // echo "<pre>";
-        // print_r($forms);
-        // echo "</pre>";
-        
-        
-        
-        
-        $entries[] = $data;
+        foreach($headers as $header) $row[$header] = $row[$header]? explode('|', $row[$header]) : array();
+        $entries[] = $row;
     }
 
     return $entries;

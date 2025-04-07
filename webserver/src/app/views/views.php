@@ -1,14 +1,14 @@
 <?php
 
 
-function _homePage() {
-    $_main = new _Main(null);
+function _homePage($entries) {
+    $_list = new _EntryList($entries);
+    $_main = new _Main($_list);
     $_base = new _Base($_main);
+    // echo '<pre>';
+    // var_dump($entries);
+    // echo '</pre>';
     echo $_base;
-    echo "<pre>";
-    // print_r($forms);
-    print_r( fetchEntry() );
-    echo "</pre>";
 }
 
 function _entrySubmission($data){

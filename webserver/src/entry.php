@@ -1,4 +1,4 @@
-<?php
+<!-- <?php
 
     $data = array(
         "original"=> "Bir de",
@@ -11,33 +11,5 @@
     );
 
 
-?>
+?> -->
 
-<article>
-    <h2>الكلمة: <?php echo implode(', ', $data['forms']); ?></h2>
-    
-    <p><strong>المعنى المراد:</strong> <?php echo implode(', ', $data['meanings']); ?></p>
-    <p><strong>دخيلة من:</strong> <?php echo $data['origin']; ?></p>
-    <p><strong>أصلها:</strong> <?php echo $data['original']; ?></p>
-
-    <h3>سياقات:</h3>
-    <ul>
-        <?php foreach($data['examples'] as $example): ?>
-            <li><?php echo $example; ?></li>
-        <?php endforeach; ?>
-    </ul>
-
-    <h3>التصنيف:</h3>
-    <ul>
-        <?php foreach($data['categories'] as $category): ?>
-            <li><?php echo $category; ?></li>
-        <?php endforeach; ?>
-    </ul>
-
-    <h3>المراجع:</h3>
-    <ul>
-        <?php foreach($data['references'] as $reference): ?>
-            <li><?php echo $reference; ?></li>
-        <?php endforeach; ?>
-    </ul>
-</article>

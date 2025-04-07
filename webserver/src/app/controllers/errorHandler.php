@@ -12,7 +12,7 @@ function customErrorHandler($errno, $errstr, $errfile, $errline) {
 }
 
 function customExceptionHandler($e){
-    if(ob_get_length()) ob_clean();
+    while( ob_get_level() > 0) ob_end_clean(); //this cleans and ends all of the nested buffers
     if ($e instanceof PageNotFoundException) {
         showNotFoundPage() ;
     }

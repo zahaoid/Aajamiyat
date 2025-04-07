@@ -104,6 +104,61 @@ class _PageNotFound extends _Template{
     }
 }
 
+class _Entry extends _Template{
+    
+    private $entryData;
+    public function __construct($entryData) {
+        $this->entryData = $entryData;
+    }
+
+    function writeToBuffer(){
+        ?>
+        <article>
+            <h2>الكلمة: <?php echo implode(', ', $this->entryData['forms']); ?></h2>
+            
+            <p><strong>المعنى المراد:</strong> <?php echo implode(', ', $this->entryData['meanings']); ?></p> 
+            <p><strong>دخيلة من:</strong> <?php echo $this->entryData['origin']; ?></p>
+            <p><strong>أصلها:</strong> <?php echo $this->entryData['original']; ?></p>
+
+            <h3>سياقات:</h3>
+            <ul>
+                <?php foreach($this->entryData['examples'] as $example): ?>
+                    <li><?php echo $example; ?></li>
+                <?php endforeach; ?>
+            </ul>
+
+            <h3>التصنيف:</h3>
+            <ul>
+                <?php foreach($this->entryData['categories'] as $category): ?>
+                    <li><?php echo $category; ?></li>
+                <?php endforeach; ?>
+            </ul>
+
+            <h3>المراجع:</h3>
+            <ul>
+                <?php foreach($this->entryData['sources'] as $reference): ?>
+                    <li><?php echo $reference; ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </article>
+        <?php
+    }
+}
+
+class _EntryList extends _Template{
+
+    private $entries;
+    function __construct($entries){
+        $this->entries = $entries;
+    }
+
+    function writeToBuffer(){
+        foreach($this->entries as $entry){
+            echo new _Entry($entry);
+        }
+    }
+}
+
 class _DataList extends _Template{
 
     private $name, $list;

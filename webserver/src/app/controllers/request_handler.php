@@ -65,5 +65,6 @@ function showErrorPage(){
 }
 
 function showHomePage(){
-    _homePage() ;
+    $entries = fetchEntries();
+    _homePage($entries) ;
 }
