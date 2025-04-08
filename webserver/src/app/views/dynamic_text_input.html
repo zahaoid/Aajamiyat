@@ -1,17 +1,23 @@
 <script>
-    function addDynamicTextInputLogic(name, list, required){
+    function addDynamicTextInputLogic(name, list, required, preloadedValues){
         const addButton = document.getElementById(`${name}-add-button`);
         const deleteButton = document.getElementById(`${name}-delete-button`);
         const inputFieldsContainer = document.getElementById(`${name}-input-container`);
+        const minimumAllowed = required? 1 : 0;
         
-        if(required)createChild();
+        
+        if(preloadedValues){
+            preloadedValues.forEach(value => {
+                createChild(value);
+            });
+        }
+        if(required && inputFieldsContainer.childElementCount < minimumAllowed) createChild();
 
-        addButton.addEventListener('click', createChild);
+        addButton.addEventListener('click', () => createChild(null));
 
         // Function to delete the last input field
         deleteButton.addEventListener('click', function() {
             const lastInputField = inputFieldsContainer.lastElementChild;
-            const minimumAllowed = required? 1 : 0;
             const alertText =required? 'هذه خانة إلزامية لا يمكن حذفها' : 'قد حذفت كل الخانات';
             if (inputFieldsContainer.childElementCount > minimumAllowed) {
                 inputFieldsContainer.removeChild(lastInputField);
@@ -20,15 +26,15 @@
             }
         });
 
-        function createChild(){
+        function createChild(preloadedValue = null){
             const inputField = document.createElement('input');
             inputField.type = 'text';
             inputField.name = name + '[]';
             inputField.setAttribute('list', list);
             inputField.required = required;
+            if (preloadedValue != null) inputField.value = preloadedValue;
             inputFieldsContainer.appendChild(inputField);
         }
-        
     }
 
 </script>

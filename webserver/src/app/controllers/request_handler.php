@@ -47,11 +47,12 @@ function validateRequirement($requiredFields){
 }
 
 function showEntrySubmissionForm(){
-    $data = array();
-    $data['origins'] = getOrigins();
-    $data['references'] = getReferences();
-    $data['categories'] = getCategories();
-    _entrySubmission($data);
+    $id = $_GET['id']?? null;
+    $lists = array();
+    $lists['origins'] = getOrigins();
+    $lists['sources'] = getReferences();
+    $lists['categories'] = getCategories();
+    _entrySubmission($lists, ($id && ($entry = fetchEntries($id)[0]?? null) )? $entry: null);
 }
 
 function showNotFoundPage(){

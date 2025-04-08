@@ -12,14 +12,14 @@ function _homePage($entries) {
 }
 
 function _entryView($entry) {
-    $_list = new _EntryList($entry);
-    $_main = new _Main($_list);
+    $_view = new _EntryView($entry[0]);
+    $_main = new _Main($_view);
     $_base = new _Base($_main);
     echo $_base;
 }
 
-function _entrySubmission($data){
-    $_form = new _EntrySubmissionForm(origins: $data['origins'], categories: $data['categories'], references: $data['references']);
+function _entrySubmission($suggestionLists, $entry = null){
+    $_form = new _EntrySubmissionForm(suggestionLists: $suggestionLists, entry: $entry);
     $_main = new _Main($_form);
     $_base = new _Base($_main);
     echo $_base;
