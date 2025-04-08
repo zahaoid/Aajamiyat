@@ -98,7 +98,7 @@ function fetchEntries(?int $entry_id = null){
     $entries = array();
     $headers = array('meanings', 'forms','sources', 'examples', 'categories');
     while($row = mysqli_fetch_assoc($result)){
-        foreach($headers as $header) $row[$header] = $row[$header]? explode('|', $row[$header]) : array();
+        foreach($headers as $header) if($row[$header]) $row[$header] = explode('|', $row[$header]);
         $entries[] = $row;
     }
 

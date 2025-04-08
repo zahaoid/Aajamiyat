@@ -68,3 +68,12 @@ function showHomePage(){
     $entries = fetchEntries();
     _homePage($entries) ;
 }
+
+function viewEntry(){
+    if(($id = $_GET['id']?? null) && !empty($entries = fetchEntries($id))){
+        _entryView($entries);
+    }
+    else{
+        throw new PageNotFoundException();
+    }
+}

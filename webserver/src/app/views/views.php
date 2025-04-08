@@ -11,6 +11,13 @@ function _homePage($entries) {
     echo $_base;
 }
 
+function _entryView($entry) {
+    $_list = new _EntryList($entry);
+    $_main = new _Main($_list);
+    $_base = new _Base($_main);
+    echo $_base;
+}
+
 function _entrySubmission($data){
     $_form = new _EntrySubmissionForm(origins: $data['origins'], categories: $data['categories'], references: $data['references']);
     $_main = new _Main($_form);

@@ -24,7 +24,7 @@ require_once '../../app/models/querier.php';
 
 // insertEntry($data);
 
-$uri = $_SERVER['REQUEST_URI'];
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 $request = [$uri, $method];
 
@@ -32,5 +32,6 @@ match ($request) {
     ['/', 'GET'] => showHomePage(),
     ['/entry_submission', 'GET'] => showEntrySubmissionForm(),
     ['/entry_submission', 'POST'] => recieveEntrySubmission(),
+    ['/view-entry', 'GET'] => viewEntry(),
     default => throw new PageNotFoundException('[' . implode(', ',$request) .']'),
 };

@@ -116,30 +116,39 @@ class _Entry extends _Template{
         <article>
             <h2>الكلمة: <?php echo implode(', ', $this->entryData['forms']); ?></h2>
             
+            <?php if ($this->entryData['meanings']): ?>
             <p><strong>المعنى المراد:</strong> <?php echo implode(', ', $this->entryData['meanings']); ?></p> 
+            <?php endif ?>
+
             <p><strong>دخيلة من:</strong> <?php echo $this->entryData['origin']; ?></p>
             <p><strong>أصلها:</strong> <?php echo $this->entryData['original']; ?></p>
-
+            
+            <?php if ($this->entryData['examples']): ?>
             <h3>سياقات:</h3>
             <ul>
                 <?php foreach($this->entryData['examples'] as $example): ?>
                     <li><?php echo $example; ?></li>
                 <?php endforeach; ?>
             </ul>
+            <?php endif ?>
 
+            <?php if ($this->entryData['categories']): ?>
             <h3>التصنيف:</h3>
             <ul>
                 <?php foreach($this->entryData['categories'] as $category): ?>
                     <li><?php echo $category; ?></li>
                 <?php endforeach; ?>
             </ul>
+            <?php endif ?>
 
+            <?php if ($this->entryData['sources']): ?>
             <h3>المراجع:</h3>
             <ul>
                 <?php foreach($this->entryData['sources'] as $reference): ?>
                     <li><?php echo $reference; ?></li>
                 <?php endforeach; ?>
             </ul>
+            <?php endif ?>
         </article>
         <?php
     }
@@ -155,6 +164,8 @@ class _EntryList extends _Template{
     function writeToBuffer(){
         foreach($this->entries as $entry){
             echo new _Entry($entry);
+            $id = $entry["id"];
+            ?> <a href="view-entry?id=<?= $id ?>">اطلاع</a> <?php
         }
     }
 }
