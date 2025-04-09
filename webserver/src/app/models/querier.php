@@ -1,5 +1,3 @@
-
-
 <?php
 
 $cache = array();
@@ -26,9 +24,6 @@ function getCategories(){
     return $categories;
 }
 
-    
-    
-    
 function getOrigins(){
     $origins = array();
     $connection = connect();
@@ -107,20 +102,49 @@ function fetchEntries(?int $entry_id = null){
 }
 
 function submitNewEntry($entryData){
-    validateData($entryData);
+    // validateData($entryData);
     $connection = connect();
     $entryId = insertEntry($connection, $entryData['origin'], $entryData['original']);
+    mysqli_begin_transaction($connection);
     try{
-        mysqli_begin_transaction($connection);
         insertForms($connection, $entryId, $entryData['forms']);
         if(isset($entryData['meanings']))
             insertMeanings($connection, $entryId, $entryData['meanings']);
         if(isset($entryData['examples']))
             insertExamples($connection, $entryId, $entryData['examples']);
         if(isset($entryData['categories']))
-            insertCategories($connection, $entryId, $entryData['categoies']);
+            insertCategories($connection, $entryId, $entryData['categories']);
         if(isset($entryData['sources']))
             insertSources($connection, $entryId, $entryData['sources']);
+        mysqli_commit($connection);
+    }
+    catch(Exception $e){
+        mysqli_rollback($connection);
+        throw $e;
+    }
+}
+
+function editEntry($entryData){
+    // validateData($entryData);
+    $entryId = $entryData['id'];
+    $connection = connect();
+    mysqli_begin_transaction($connection);
+    try{
+        updateEntry($connection, $entryId, $entryData['origin'], $entryData['original']);
+        deleteForms($connection, $entryId);
+        insertForms($connection, $entryId, $entryData['forms']);
+        deleteMeanings( $connection, $entryId);
+        if(isset($entryData['meanings']))
+            insertMeanings( $connection, $entryId, $entryData['meanings']);
+        deleteExamples( $connection, $entryId);
+        if(isset($entryData['examples']))
+            insertExamples($connection, $entryId, $entryData['examples']);
+        deleteCategories( $connection, $entryId);
+        if(isset($entryData['categories']))
+            insertCategories( $connection, $entryId, $entryData['categories']);
+        deleteSources( $connection, $entryId);
+        if(isset($entryData['sources']))
+            insertSources( $connection, $entryId, $entryData['sources']);
         mysqli_commit($connection);
     }
     catch(Exception $e){
@@ -140,8 +164,7 @@ function insertEntry(mysqli $connection, string $origin, string $original){
 function insertForms(mysqli $connection, int $entryId, array $forms){
     static $forms_query = 'insert into entry_forms(entry_id, form) values (?, ?);';
     $stmt = mysqli_prepare($connection, $forms_query);
-    $form = '';
-    $stmt->bind_param('is', $entry_id, $form) ;
+    $stmt->bind_param('is', $entryId, $form) ;
     foreach ($forms as $form){
         $stmt->execute();
     }
@@ -150,8 +173,7 @@ function insertForms(mysqli $connection, int $entryId, array $forms){
 function insertMeanings(mysqli $connection, int $entryId, array $meanings){
     static $meanings_query = 'insert into entry_meanings(entry_id, meaning) values(?, ?);';
     $stmt = mysqli_prepare($connection, $meanings_query);
-    $meaning = '';
-    $stmt->bind_param('is', $entry_id, $meaning) ;
+    $stmt->bind_param('is', $entryId, $meaning) ;
     foreach ($meanings as $meaning){
         $stmt->execute();
     }
@@ -160,8 +182,7 @@ function insertMeanings(mysqli $connection, int $entryId, array $meanings){
 function insertSources(mysqli $connection, int $entryId, array $sources){
     static $sources_query = 'insert into entry_sources(entry_id, source) values(?, ?)';
     $stmt = mysqli_prepare($connection, $sources_query);
-    $source = '';
-    $stmt->bind_param('is', $entry_id, $source) ;
+    $stmt->bind_param('is', $entryId, $source) ;
     foreach ($sources as $source){
         $stmt->execute();
     }
@@ -170,8 +191,7 @@ function insertSources(mysqli $connection, int $entryId, array $sources){
 function insertCategories(mysqli $connection, int $entryId, array $categories){
     static $categories_query = 'insert into entry_categories(entry_id, category) values(?, ?)';
     $stmt = mysqli_prepare($connection, $categories_query);
-    $category = '';
-    $stmt->bind_param('is', $entry_id, $category) ;
+    $stmt->bind_param('is', $entryId, $category) ;
     foreach ($categories as $category){
         $stmt->execute();
     }
@@ -180,8 +200,7 @@ function insertCategories(mysqli $connection, int $entryId, array $categories){
 function insertExamples(mysqli $connection, int $entryId, array $examples){
     static $examples_query = 'insert into entry_examples(entry_id, example) values(?, ?);';
     $stmt = mysqli_prepare($connection, $examples_query);
-    $example = '';
-    $stmt->bind_param('is', $entry_id, $example) ;
+    $stmt->bind_param('is', $entryId, $example) ;
     foreach ($examples as $example){
         $stmt->execute();
     }
@@ -222,18 +241,16 @@ function deleteSources(mysqli $connection, int $entryId){
     $stmt->execute();
 }
 
-function validateData($entryData){
-    if (!isset($data['origin'], $data['original'], $data['forms']))
-    throw new InvalidArgumentException('Data is not in the expected format');
-}
-
-// function updateEntry(mysqli $connection, int $entryId){
-//     validateData($entryData);
-    
-    
-//     $connection = connect();
-
-
-
-
+// function validateData($entryData){
+//     if (!isset($entryData['origin'], $entryData['original'], $entryData['forms']))
+//     throw new InvalidArgumentException('Data is not in the expected format: ' . print_r($entryData));
 // }
+
+function updateEntry(mysqli $connection, int $entryId, string $origin, string $original){
+    
+    static $query = 'update entries set origin = ?, original = ? where id = ?;';
+    $stmt = mysqli_prepare($connection, $query);
+    $stmt->bind_param('ssi', $origin, $original, $entryId) ;
+    $stmt->execute();
+
+}

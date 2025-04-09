@@ -181,33 +181,10 @@ class _EntryView extends _Template{
     }
 
     function writeToBuffer(){
-        echo new _Entry($this->entry, true);
+        echo new _Entry($this->entry);
         $id = $this->entry["id"];
         ?> 
-        <button id="edit-button">تعديل</button>
-        <script>
-            const editButton = document.getElementById(`edit-button`);
-            editButton.addEventListener('click', function(){
-                var xhr = new XMLHttpRequest();
-
-                // Configure it as a GET request to a URL (e.g., 'example.com/data')
-                xhr.open('GET', '/', true);
-
-                // Set up what to do when the request completes
-                xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    // The request was successful
-                    console.log('Response:', xhr.responseText);
-                } else if (xhr.readyState === 4) {
-                    // There was an error with the request
-                    console.log('Error:', xhr.status);
-                }
-                };
-
-                // Send the request
-                xhr.send();
-            })
-        </script>
+        <a href="/entry_submission?id=<?= $id ?>" >تعديل</a>
         <?php
     }
 }

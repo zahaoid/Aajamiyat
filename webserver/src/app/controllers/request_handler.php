@@ -1,13 +1,12 @@
 <?php
 
-
-
 function recieveEntrySubmission(){
     $requiredFields = array("forms","original","origin");
 
     if(validateRequirement($requiredFields)){
         
         $data = array();
+        $data["id"] = $_GET["id"]?? null;
         $data["origin"] = $_POST["origin"];
         $data["original"] = $_POST["original"];
         $data["forms"] = $_POST["forms"];
@@ -15,23 +14,31 @@ function recieveEntrySubmission(){
         $data["meanings"] = $_POST["meanings"] ?? null;
         $data["sources"] = $_POST["references"] ?? null;
         $data["categories"] = $_POST["categories"] ?? null;
-
-        submitNewEntry( $data);
-
-        echo <<< LOGIC
+        if($data["id"] == null){
+            submitNewEntry( $data);
+            ?>
             <script>
-                alert("receiverd");
+                alert("recieved");
             </script>
-        LOGIC;
-
+        <?php
+        }
+        else{
+            editEntry($data);
+            ?>
+            <script>
+                alert("edited");
+            </script>
+        <?php
+        }
+        
 
     }
     else{
-        echo <<< LOGIC
+        ?>
             <script>
                 alert("بعض الخانات الإلزامية ناقصة, إن كان هذا خللاً فأبلغ القائمين على الموقع");
             </script>
-        LOGIC;
+        <?php
     }
     
 }
