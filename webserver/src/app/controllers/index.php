@@ -1,16 +1,33 @@
 <?php
 
 require_once 'errorHandler.php';
-ob_start();
-
-const APP_NAME = 'معجم الألفاظ الأعجمية معربها ودخيلها';
-
-
 require_once 'request_handler.php';
 require_once '../../app/views/templates.php';
 require_once '../../app/views/views.php';
 require_once '../../app/models/connect.php';
 require_once '../../app/models/querier.php';
+
+ob_start();
+
+const APP_NAME = 'مسرد الألفاظ الأعجمية';
+
+//xss prevention (hopefully lol)
+$_GET = sanitizeInput($_GET);
+
+$_POST = sanitizeInput($_POST);
+$_REQUEST = (array)$_POST + (array)$_GET + (array)$_REQUEST;
+
+function sanitizeInput($input){
+    if (is_array($input)){
+        foreach ($input as $key => $value) {
+            $input[$key] = sanitizeInput($value);
+        }
+        return $input;
+    }
+    return htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
+}
+
+
 
 // $data = array(
 //     "original"=> "Bir de",
