@@ -16,7 +16,7 @@ function recieveEntrySubmission(){
         $data["sources"] = $_POST["references"] ?? null;
         $data["categories"] = $_POST["categories"] ?? null;
 
-        insertEntry( $data);
+        submitNewEntry( $data);
 
         echo <<< LOGIC
             <script>
