@@ -33,7 +33,7 @@ class Navigation extends _Template{
                         </a>
                     </li>
                     <li>
-                        <a href="https://github.com/zahaoid/docker-apache-php-mysql-template">
+                        <a href="https://github.com/zahaoid/web-project">
                         القِتهب
                         </a>
                     </li>
