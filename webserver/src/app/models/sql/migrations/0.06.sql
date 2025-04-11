@@ -1,5 +1,5 @@
 CREATE TABLE entry_categories (
-    entry_id INT,
-    category VARCHAR(255),
-    FOREIGN KEY (entry_id) REFERENCES entries(id) on delete cascade
+    submission_id INT not null,
+    category VARCHAR(255) not null,
+    FOREIGN KEY (submission_id) REFERENCES entries(submission_id) on delete cascade
 );

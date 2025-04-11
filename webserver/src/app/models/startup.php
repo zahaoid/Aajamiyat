@@ -4,7 +4,7 @@
 include("connect.php");
 
 function printVersionInfo($connection, $config, $migrationFiles){
-    error_log( "Current database version = " . getDatabaseVersion($connection, $config) . " current webserver version = " . getAppVersion($migrationFiles) . "\n");
+    echo( "Current database version = " . getDatabaseVersion($connection, $config) . " current webserver version = " . getAppVersion($migrationFiles) . "\n");
 }
 
 function getAppVersion($migrationFiles): string{
@@ -36,7 +36,7 @@ function createVersionControlTable($connection, $config)
 {
     $query = "CREATE TABLE {$config['versioningTableName'] }(version VARCHAR(10) PRIMARY KEY, dateapplied TIMESTAMP NOT NULL, sql_query TEXT NOT NULL);";
     mysqli_query($connection, $query);
-    error_log ("Version control table created successfully.\n");
+    echo ("Version control table created successfully.\n");
 }
 
 function createWebUser($connection, $config){
@@ -45,7 +45,7 @@ function createWebUser($connection, $config){
     GRANT SELECT, INSERT, UPDATE ON `{$config['dbName']}`.* TO '{$config['webServerUsername']}'@'%';
     FLUSH PRIVILEGES;";
     mysqli_multi_query( $connection, $query);
-    error_log ("Users have been created succesfully.\n");
+    echo ("Users have been created succesfully.\n");
 }
 
 // Nuke the database (drop and recreate it)
@@ -53,7 +53,7 @@ function nukeDatabase($connection, $config){
     $drop_query = "DROP DATABASE IF EXISTS {$config['dbName']};";
     $create_query = "CREATE DATABASE {$config['dbName']};";
     mysqli_multi_query($connection, $drop_query . $create_query);
-    error_log ("Database nuked successfully.\n");
+    echo ("Database nuked successfully.\n");
 }
 
 // Initialize the database by checking version control and applying migrations if needed
@@ -61,18 +61,18 @@ function initializeDatabase($config){
     $errorFlag = false;
     try{
         $migrationFiles =  loadMigrationFiles($config);
-        $connection = connect($config);
-        error_log ("Checking compatibilty with the database...\n");
+        $connection = connect();
+        echo ("Checking compatibilty with the database...\n");
         printVersionInfo($connection, $config, $migrationFiles);
         if (!isVersionControlled($connection, $config)) {
-            error_log ("Database is not version controlled, attempting to nuke the database..\n");
+            echo ("Database is not version controlled, attempting to nuke the database..\n");
             nukeDatabase($connection, $config);
             closeConnection($connection);
-            $connection = connect($config); // Reconnect
+            $connection = connect(); // Reconnect
             createVersionControlTable($connection, $config);
-            error_log ("The database has been reset and is now configured properly.\n");
+            echo ("The database has been reset and is now configured properly.\n");
         } else {
-            error_log ("Database is already version controlled.\n");
+            echo ("Database is already version controlled.\n");
             if(getAppVersion($migrationFiles) < getDatabaseVersion($connection, $config)){
                 throw new Exception("This app version is behind the database version!");
             }
@@ -83,8 +83,8 @@ function initializeDatabase($config){
         createWebUser( $connection, $config);
     }
     catch(Exception $e) {  
-        error_log ("A fatal error has occured, attempting to shutdown the web server.. \n");
-        error_log("Error: " . $e);
+        echo ("A fatal error has occured, attempting to shutdown the web server.. \n");
+        echo("Error: " . $e);
         $errorFlag = true;
     }
     finally{
@@ -95,7 +95,7 @@ function initializeDatabase($config){
 
 function loadMigrationFiles($config){
 
-    error_log ("Checking for migration scripts...\n");
+    echo ("Checking for migration scripts...\n");
 
     // Get the list of migration files
     $migrationFiles = array_filter(scandir($config['migrationsFolderPath']), function($path){
@@ -106,7 +106,7 @@ function loadMigrationFiles($config){
     usort($migrationFiles, function ($a, $b) {
         return version_compare(parseVersion($a) , parseVersion($b) );
     });
-    error_log ("available migration script: \n") ;
+    echo ("available migration script: \n") ;
     print_r($migrationFiles);
     return $migrationFiles;
 
@@ -124,7 +124,7 @@ function migrate($connection, $config, $migrationFiles)
     });
 
     if ($newMigrations) {
-        error_log ("new SQL migration scripts found.\n");
+        echo ("new SQL migration scripts found.\n");
         $migrationSuccessful = true;
 
         foreach ($newMigrations as $file) {
@@ -137,10 +137,10 @@ function migrate($connection, $config, $migrationFiles)
         }
 
         if ($migrationSuccessful) {
-            error_log ("All migrations applied successfully!\n");
+            echo ("All migrations applied successfully!\n");
         }
     } else {
-        error_log ("No new migrations found. Database is at the latest version.\n");
+        echo ("No new migrations found. Database is at the latest version.\n");
     }
 }
 
@@ -152,7 +152,7 @@ function readSqlFile($path){
 function applyMigration($connection, $config, $file){
     $version = parseVersion(filename: $file);
     $migrationSql = readSqlFile($config['migrationsFolderPath'] . DIRECTORY_SEPARATOR . $file);
-    error_log ("Applying " . $file . "\n");
+    echo ("Applying " . $file . "\n");
     // Apply the migration SQL
     if(mysqli_query($connection, $migrationSql)){
 
@@ -162,7 +162,7 @@ function applyMigration($connection, $config, $file){
         $stmt = mysqli_prepare($connection, $logQuery);
         mysqli_stmt_bind_param($stmt, "sss", $version, $migrationSql, $dateApplied);
         mysqli_stmt_execute($stmt);
-        error_log ("Migration version " . $version . " applied successfully\n");
+        echo ("Migration version " . $version . " applied successfully\n");
     }
 }
 
