@@ -15,20 +15,14 @@ function recieveEntrySubmission(){
         $data["sources"] = $_POST["references"] ?? null;
         $data["categories"] = $_POST["categories"] ?? null;
         if($data["id"] == null){
-            submitNewEntry( $data);
-            ?>
-            <script>
-                alert("recieved");
-            </script>
-        <?php
+            $newEntryId = submitNewEntry( $data);
+            showMessageOnNextPage("رُصِدَت اللفظة");
+            header("Location:/view-entry?id=".$newEntryId);
         }
         else{
             editEntry($data);
-            ?>
-            <script>
-                alert("edited");
-            </script>
-        <?php
+            showMessageOnNextPage("عُدِّلَت اللفظة");
+            header("Location:/view-entry?id=".$data['id']);
         }
         
 
@@ -79,9 +73,14 @@ function showHomePage(){
 
 function viewEntry(){
     if(($id = $_GET['id']?? null) && !empty($entries = fetchEntries($id))){
-        _entryView($entries);
+        _entryView($entries[0]);
     }
     else{
         throw new PageNotFoundException();
     }
+}
+
+function showMessageOnNextPage(string $message){
+    if (isset($_SESSION['messages']) == false) $_SESSION['messages'] = array();
+    $_SESSION['messages'][] = $message;
 }

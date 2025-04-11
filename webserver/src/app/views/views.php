@@ -12,9 +12,11 @@ function _homePage($entries) {
 }
 
 function _entryView($entry) {
-    $_view = new _EntryView($entry[0]);
+    $_view = new _EntryView($entry);
     $_main = new _Main($_view);
     $_base = new _Base($_main);
+    $GLOBALS['title'] = "أصل ومعنى كلمة " . implode(", ", $entry['forms']) . ' - ' . APP_NAME;
+
     echo $_base;
 }
 

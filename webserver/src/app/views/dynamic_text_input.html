@@ -1,11 +1,13 @@
 <script>
-    function addDynamicTextInputLogic(name, list, required, preloadedValues){
-        const addButton = document.getElementById(`${name}-add-button`);
-        const deleteButton = document.getElementById(`${name}-delete-button`);
-        const inputFieldsContainer = document.getElementById(`${name}-input-container`);
+    function addDynamicTextInputLogic(attributes, preloadedValues){
+        const addButton = document.getElementById(`${attributes['name']}-add-button`);
+        const deleteButton = document.getElementById(`${attributes['name']}-delete-button`);
+        const inputFieldsContainer = document.getElementById(`${attributes['name']}-input-container`);
+        const required = 'required' in attributes;
         const minimumAllowed = required? 1 : 0;
         
-        
+        console.log(attributes);
+
         if(preloadedValues){
             preloadedValues.forEach(value => {
                 createChild(value);
@@ -29,9 +31,9 @@
         function createChild(preloadedValue = null){
             const inputField = document.createElement('input');
             inputField.type = 'text';
-            inputField.name = name + '[]';
-            inputField.setAttribute('list', list);
-            inputField.required = required;
+            for (let attribute in attributes) {
+                inputField.setAttribute(attribute, attribute == 'name'? attributes[attribute] + '[]' : attributes[attribute]);
+            }
             if (preloadedValue != null) inputField.value = preloadedValue;
             inputFieldsContainer.appendChild(inputField);
         }
