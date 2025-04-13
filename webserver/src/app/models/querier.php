@@ -101,8 +101,17 @@ function fetchEntries(?string $entryId = null, ?string $status = null, ?bool $la
     $result = mysqli_stmt_get_result($stmt);
     $entries = array();
     $headers = array('meanings', 'forms','sources', 'examples', 'categories');
+    $lastEntryId = null;
+    $sameDefinitionGroup = array();
     while($row = mysqli_fetch_assoc($result)){
         foreach($headers as $header) if($row[$header]) $row[$header] = explode('|', $row[$header]);
+        $entryId = $row['entry_id'];
+        if($entryId != $lastEntryId){
+            $sameDefinitionGroup = array();
+        }
+        else{
+            $sameDefinitionGroup[] = $row;
+        }
         $entries[] = $row;
     }
 
