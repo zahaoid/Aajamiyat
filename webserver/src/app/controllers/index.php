@@ -2,31 +2,83 @@
 
 // Database credentials
 
-$config = [
-    'sqlHostAddress' => getenv("MYSQL_HOST_ADDRESS"),
-    'superUsername' => 'root',
-    'superPassword' => getenv("MYSQL_ROOT_PASSWORD"),
-    'webServerUsername' => getenv("MYSQL_USER"),
-    'webServerPassword' => getenv("MYSQL_PASSWORD"),
-    'dbName' => getenv("MYSQL_DATABASE"),
-    'sqlFolderPath' => __DIR__ . '/sql',
-    'migrationsFolderPath' => DIRECTORY_SEPARATOR . __DIR__ . '/sql/migrations',
-    'versioningTableName' => 'version_control'
-];
-
-
 require_once 'errorHandler.php';
 require_once 'request_handler.php';
-require_once '../../app/views/templates.php';
-require_once '../../app/views/views.php';
-require_once '../../app/models/connect.php';
-require_once '../../app/models/querier.php';
+require_once '../views/templates.php';
+require_once '../views/views.php';
+require_once '../models/config.php';
+require_once '../models/connect.php';
+require_once '../models/querier.php';
 
 ob_start();
 session_start();
 
 const APP_NAME = 'مسرد الألفاظ الأعجمية';
 
+// $data = array(
+//     array(
+//         "original"=> "Bir de",
+//         "origin"=> "التركية",
+//         "forms"=> array("بردو" ,"برضو", "برضه", "برده"),
+//         "meanings"=> array("أيضًا", "كذلك"),
+//         "examples"=> array(
+//             "أنا مش هقدر أخلص الشغل بسرعة، بس أنت برضه حاول تساعدني",
+//             "الكتب دي جديدة، وبرضه عندي كتب قديمة إذا عايز"
+//         ),
+//         "categories"=> array("العامية"),
+//         "sources"=> array("معجم الكلمات الدخيلة في لغتنا الدارجة لمحمد ابن ناصر العبودي")
+//     ),
+//     array(
+//         "original"=> "Merci",
+//         "origin"=> "الفرنسية",
+//         "forms"=> array("مرسي", "ميرسي"),
+//         "meanings"=> array("شكرًا", "أشكرك"),
+//         "examples"=> array(
+//             "مرسي على المساعدة اللي قدمتها",
+//             "قلتله ميرسي وهو ابتسم ومشي"
+//         ),
+//         "categories"=> array("العامية"),
+//         "sources"=> array("معجم الكلمات الدخيلة في لغتنا الدارجة لمحمد ابن ناصر العبودي")
+//     ),
+//     array(
+//         "original"=> "Kaput",
+//         "origin"=> "الألمانية",
+//         "forms"=> array("كابوت", "كابوتة"),
+//         "meanings"=> array("تالف", "خربان"),
+//         "examples"=> array(
+//             "العربية دي كابوت من زمان، مش هتنفع تتصلح",
+//             "التلفزيون وقع على الأرض وبقى كابوت"
+//         ),
+//         "categories"=> array("العامية"),
+//         "sources"=> array("معجم الكلمات الدخيلة في لغتنا الدارجة لمحمد ابن ناصر العبودي")
+//     ),
+//     array(
+//         "original"=> "Pantalon",
+//         "origin"=> "الفرنسية",
+//         "forms"=> array("بنطلون"),
+//         "meanings"=> array("سروال", "ズズ"),
+//         "examples"=> array(
+//             "اشتريت بنطلون جديد من السوق",
+//             "هو دايمًا يلبس بنطلون جينز"
+//         ),
+//         "categories"=> array("العامية"),
+//         "sources"=> array("معجم الكلمات الدخيلة في لغتنا الدارجة لمحمد ابن ناصر العبودي")
+//     ),
+//     array(
+//         "original"=> "Basta",
+//         "origin"=> "الإيطالية",
+//         "forms"=> array("بَسطة", "بِسطة"),
+//         "meanings"=> array("مكان بيع على الرصيف", "كشك صغير"),
+//         "examples"=> array(
+//             "اشتريت الخضار من البسطة اللي في أول الشارع",
+//             "فيه بسطة هناك بتبيع إكسسوارات حلوة"
+//         ),
+//         "categories"=> array("العامية"),
+//         "sources"=> array("معجم الكلمات الدخيلة في لغتنا الدارجة لمحمد ابن ناصر العبودي")
+//     )
+// );
+
+// foreach($data as $ent) submitNewEntry($ent);
 //xss prevention (hopefully)
 $_GET = sanitizeInput($_GET);
 $_POST = sanitizeInput($_POST);

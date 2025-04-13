@@ -1,7 +1,8 @@
 <?php
 
 
-include("connect.php");
+require_once("connect.php");
+require_once ('config.php');
 
 function printVersionInfo($connection, $config, $migrationFiles){
     echo( "Current database version = " . getDatabaseVersion($connection, $config) . " current webserver version = " . getAppVersion($migrationFiles) . "\n");

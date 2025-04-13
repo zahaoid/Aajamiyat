@@ -38,54 +38,73 @@ function getOrigins(){
 function fetchEntries(?string $entryId = null, ?string $status = null, ?bool $latest = false){
     
     $connection = connect();
-    $query = "select 
-        entries.*, 
-        forms.forms,
-        categories.categories,
-        examples.examples,
-        meanings.meanings,
-        sources.sources
-    from 
-        entries
-    left join (
-        select 
+    $query = "WITH 
+    form_data AS (
+        SELECT 
             submission_id,
-            group_concat(form SEPARATOR '|') as forms
-        from entry_forms
-        group by submission_id
-    ) forms on entries.submission_id = forms.submission_id
-    left join (
-        select 
+            GROUP_CONCAT(form SEPARATOR '|') AS forms
+        FROM 
+            entry_forms
+        GROUP BY 
+            submission_id
+    ),
+    category_data AS (
+        SELECT 
             submission_id,
-            group_concat(category SEPARATOR '|') as categories
-        from entry_categories
-        group by submission_id
-    ) categories on entries.submission_id = categories.submission_id
-    left join (
-        select 
+            GROUP_CONCAT(category SEPARATOR '|') AS categories
+        FROM 
+            entry_categories
+        GROUP BY 
+            submission_id
+    ),
+    example_data AS (
+        SELECT 
             submission_id,
-            group_concat(example SEPARATOR '|') as examples
-        from entry_examples
-        group by submission_id
-    ) examples on entries.submission_id = examples.submission_id
-    left join (
-        select 
+            GROUP_CONCAT(example SEPARATOR '|') AS examples
+        FROM 
+            entry_examples
+        GROUP BY 
+            submission_id
+    ),
+    meaning_data AS (
+        SELECT 
             submission_id,
-            group_concat(meaning SEPARATOR '|') as meanings
-        from entry_meanings
-        group by submission_id
-    ) meanings on entries.submission_id = meanings.submission_id
-    left join (
-        select 
+            GROUP_CONCAT(meaning SEPARATOR '|') AS meanings
+        FROM 
+            entry_meanings
+        GROUP BY 
+            submission_id
+    ),
+    source_data AS (
+        SELECT 
             submission_id,
-            group_concat(source SEPARATOR '|') as sources
-        from entry_sources
-        group by submission_id
-    ) sources on entries.submission_id = sources.submission_id
+            GROUP_CONCAT(source SEPARATOR '|') AS sources
+        FROM 
+            entry_sources
+        GROUP BY 
+            submission_id
+    )
+
+    SELECT 
+        e.*,
+        f.forms,
+        c.categories,
+        ex.examples,
+        m.meanings,
+        s.sources,
+        max(submitted_at) as latest
+    FROM 
+        entries e
+    LEFT JOIN form_data f ON e.submission_id = f.submission_id
+    LEFT JOIN category_data c ON e.submission_id = c.submission_id
+    LEFT JOIN example_data ex ON e.submission_id = ex.submission_id
+    LEFT JOIN meaning_data m ON e.submission_id = m.submission_id
+    LEFT JOIN source_data s ON e.submission_id = s.submission_id
     %s
-    ORDER BY entry_id
-    ;";
+    group by e.entry_id;
+    ";
     $conditions = array();
+    $conditions
     if(isset($status)) $conditions[]= "status = ?";
     if(isset($entryId)) $conditions[]= "entry_id = ?";
     $clauses = array();
