@@ -1,5 +1,20 @@
 <?php
 
+// Database credentials
+
+$config = [
+    'sqlHostAddress' => getenv("MYSQL_HOST_ADDRESS"),
+    'superUsername' => 'root',
+    'superPassword' => getenv("MYSQL_ROOT_PASSWORD"),
+    'webServerUsername' => getenv("MYSQL_USER"),
+    'webServerPassword' => getenv("MYSQL_PASSWORD"),
+    'dbName' => getenv("MYSQL_DATABASE"),
+    'sqlFolderPath' => __DIR__ . '/sql',
+    'migrationsFolderPath' => DIRECTORY_SEPARATOR . __DIR__ . '/sql/migrations',
+    'versioningTableName' => 'version_control'
+];
+
+
 require_once 'errorHandler.php';
 require_once 'request_handler.php';
 require_once '../../app/views/templates.php';
@@ -33,8 +48,12 @@ $request = [$uri, $method];
 
 match ($request) {
     ['/', 'GET'] => showHomePage(),
-    ['/entry_submission', 'GET'] => showEntrySubmissionForm(),
-    ['/entry_submission', 'POST'] => recieveEntrySubmission(),
+    ['/submit-entry', 'GET'] => showEntrySubmissionForm(),
+    ['/submit-entry', 'POST'] => recieveEntrySubmission(),
     ['/view-entry', 'GET'] => viewEntry(),
+    ['/review-entries', 'GET'] => showReviewPage(),
+    ['/login', 'GET'] => showLoginForm(),
+    ['/login', 'POST'] => authenticate(),
+    ['/logout', 'GET'] => logout(),
     default => throw new PageNotFoundException('[' . implode(', ',$request) .']'),
 };

@@ -52,7 +52,7 @@ class Navigation extends _Template{
                         </a>
                     </li>
                     <li>
-                        <a href="/entry_submission">
+                        <a href="/submit-entry">
                         رصد الألفاظ
                         </a>
                     </li>
@@ -61,6 +61,13 @@ class Navigation extends _Template{
                         القِتهب
                         </a>
                     </li>
+                    <?php if (isset($_SESSION['admin'])) : ?>
+                    <li>
+                        <a href="logout">
+                        خروج
+                        </a>
+                    </li>
+                    <?php endif; ?>
                 </ul>
             </nav>
         <?php
@@ -268,7 +275,7 @@ class _EntryList extends _Template{
             <section> 
                 <?php
                 echo new _EntrySummary($entry);
-                $id = $entry["id"];
+                $id = $entry["entry_id"];
                 ?> 
                 <a href="view-entry?id=<?= $id ?>">اطلاع</a> 
             </section> 
@@ -289,9 +296,9 @@ class _EntryView extends _Template{
         ?> 
         <section> 
             <?php
-            echo new _EntryDetailed($this->entry); $id = $this->entry["id"];
+            echo new _EntryDetailed($this->entry); $id = $this->entry["entry_id"];
             ?> 
-            <a href="/entry_submission?id=<?= $id ?>" >تعديل</a>
+            <a href="/submit-entry?id=<?= $id ?>" >تعديل</a>
         </section> 
         <?php
     }
@@ -381,6 +388,24 @@ class _DynamicTextInput extends _Template{
             <script>
                 addDynamicTextInputLogic(<?= json_encode($this->attributes) ?>, <?= json_encode($this->preloadedValues) ?>);
             </script>
+        <?php
+    }
+}
+
+class _LoginForm extends _Template{
+
+    function writeToBuffer(){
+        ?>
+        <form action="login" method="post">
+            <fieldset>
+                <legend>معلومات الدخول:</legend>
+                <label for="username">اسم الدخول</label>
+                <input type="text" name="username" required>
+                <label for="password">كلمة السر</label>
+                <input type="password" name="password" required>
+                <button type="submit">دخول</button>
+            </fieldset>
+        </form>
         <?php
     }
 }

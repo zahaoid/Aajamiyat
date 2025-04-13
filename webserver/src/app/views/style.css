@@ -145,7 +145,7 @@ label {
     font-weight: bold;
 }
 
-input[type="text"] {
+input {
     display: block;
     width: 95%;
     margin: 5px 0;

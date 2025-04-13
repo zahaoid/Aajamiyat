@@ -39,3 +39,16 @@ function _pageNotFound(){
     $_base = new _Base($_notFound);
     echo $_base;
 }
+
+function _loginForm(){
+    $_form = new _LoginForm();
+    $_main = new _Main($_form);
+    $_base = new _Base($_main);
+    echo $_base;
+}
+
+function _entriesReviewPage(){
+    $_main = new _Main(null);
+    $_base = new _Base($_main);
+    echo $_base;
+}

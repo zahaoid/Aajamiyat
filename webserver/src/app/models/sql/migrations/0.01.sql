@@ -4,6 +4,6 @@ CREATE TABLE entries (
     origin VARCHAR(255) NOT NULL,
     original VARCHAR(255) NOT NULL,
     status enum("approved", "rejected", "pending") NOT NULL default "pending",
-    submitted_at timestamp default current_timestamp() NOT NULL,
+    submitted_at timestamp NOT NULL default current_timestamp(),
     reviewed_at timestamp
 );

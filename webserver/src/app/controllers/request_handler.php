@@ -14,15 +14,14 @@ function recieveEntrySubmission(){
         $data["meanings"] = $_POST["meanings"] ?? null;
         $data["sources"] = $_POST["references"] ?? null;
         $data["categories"] = $_POST["categories"] ?? null;
+        $newEntryId = submitNewEntry( $data);
         if($data["id"] == null){
-            $newEntryId = submitNewEntry( $data);
-            showMessageOnNextPage("رُصِدَت اللفظة");
-            header("Location:/view-entry?id=".$newEntryId);
+            showMessageOnNextPage("رُصِدَت اللفظة وهي قيد المراجعة");
+            header('Location:/');
         }
         else{
-            editEntry($data);
-            showMessageOnNextPage("عُدِّلَت اللفظة");
-            header("Location:/view-entry?id=".$data['id']);
+            showMessageOnNextPage("عُدِّلَت اللفظة وهي قيد المراجعة");
+            header('Location:/view-entry?id=' . $newEntryId);
         }
         
 
@@ -34,7 +33,6 @@ function recieveEntrySubmission(){
             </script>
         <?php
     }
-    
 }
 
 function validateRequirement($requiredFields){
@@ -67,7 +65,7 @@ function showErrorPage(){
 }
 
 function showHomePage(){
-    $entries = fetchEntries();
+    $entries = fetchEntries(status: 'pending');
     _homePage($entries) ;
 }
 
@@ -83,4 +81,40 @@ function viewEntry(){
 function showMessageOnNextPage(string $message){
     if (isset($_SESSION['messages']) == false) $_SESSION['messages'] = array();
     $_SESSION['messages'][] = $message;
+}
+
+function showReviewPage(){
+    requireAdmin();
+    _entriesReviewPage();
+}
+
+function showLoginForm(){
+    _loginForm();
+}
+
+function authenticate(){
+    global $config;
+    if(isset($_POST['username'], $_POST['password']) && $config['webServerUsername'] == $_POST['username'] && $config['webServerPassword'] == $_POST['password']){
+        $_SESSION['admin'] = true;
+        header('Location:/');
+        exit;
+    }
+    else{
+        showMessageOnNextPage('كلمة السر واسم الدخول أو إحداهما خاطئ');
+        header('Location:/login');
+        exit;
+    }
+}
+
+function logout(){
+    if (isset($_SESSION['admin'])) unset($_SESSION['admin']);
+    header('Location:/');
+    exit;
+}
+
+function requireAdmin(){
+    if (!isset($_SESSION['admin'])){
+        header('Location: /login');
+        exit();
+    }
 }
