@@ -35,6 +35,21 @@ function getOrigins(){
     return $origins;
 }
 
+WITH latest_approved AS (
+    SELECT *, 
+           ROW_NUMBER() OVER (
+             PARTITION BY entry_id 
+             ORDER BY reviewed_at DESC, submission_id DESC
+           ) AS rn
+    FROM entries
+    WHERE reviewed_at IS NOT NULL
+  )
+  SELECT *
+  FROM latest_approved
+  WHERE rn = 1;
+
+  
+
 function fetchEntries(?string $entryId = null, ?string $status = null, ?bool $latest = false){
     
     $connection = connect();
@@ -83,7 +98,13 @@ function fetchEntries(?string $entryId = null, ?string $status = null, ?bool $la
             entry_sources
         GROUP BY 
             submission_id
-    )
+    ),
+
+    latest_approved as(select *, row_number() over (partition by entry_id order by reviewed_at desc, submission_id desc) as rn from entries where reviewed_at is not null)
+        
+    latest_approved
+    
+    select * from latest_approved where rn=1;
 
     SELECT 
         e.*,
@@ -104,7 +125,7 @@ function fetchEntries(?string $entryId = null, ?string $status = null, ?bool $la
     group by e.entry_id;
     ";
     $conditions = array();
-    $conditions
+    //$conditions
     if(isset($status)) $conditions[]= "status = ?";
     if(isset($entryId)) $conditions[]= "entry_id = ?";
     $clauses = array();

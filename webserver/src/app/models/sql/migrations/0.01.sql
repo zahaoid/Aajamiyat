@@ -3,7 +3,6 @@ CREATE TABLE entries (
     entry_id VARCHAR(255) NOT NULL,
     origin VARCHAR(255) NOT NULL,
     original VARCHAR(255) NOT NULL,
-    status enum("approved", "rejected", "pending") NOT NULL default "pending",
     submitted_at timestamp NOT NULL default current_timestamp(),
-    reviewed_at timestamp
+    approved_at timestamp
 );
