@@ -51,7 +51,7 @@ function showEntrySubmissionForm(){
     $lists['origins'] = getOrigins();
     $lists['sources'] = getReferences();
     $lists['categories'] = getCategories();
-    _entrySubmission($lists, ($id && ($entry = fetchEntries($id)[0]?? null) )? $entry: null);
+    _entrySubmission($lists, ($id && ($entry = fetchLatestApproved($id)?? null) )? $entry: null);
 }
 
 function showNotFoundPage(){
@@ -65,13 +65,16 @@ function showErrorPage(){
 }
 
 function showHomePage(){
-    $entries = fetchEntries(status: 'pending');
+    $entries = fetchAllLatestApproved();
+    // echo '<pre>';
+    // echo print_r($entries,true);
+    // echo '</pre>';
     _homePage($entries) ;
 }
 
 function viewEntry(){
-    if(($id = $_GET['id']?? null) && !empty($entries = fetchEntries($id))){
-        _entryView($entries[0]);
+    if(($id = $_GET['id']?? null) && !empty($entry = fetchLatestApproved($id))){
+        _entryView($entry);
     }
     else{
         throw new PageNotFoundException();
@@ -85,7 +88,11 @@ function showMessageOnNextPage(string $message){
 
 function showReviewPage(){
     requireAdmin();
-    _entriesReviewPage();
+    $entries = fetchAllPending()['a_'];
+    // echo '<pre>';
+    // echo print_r($entries,true);
+    // echo '</pre>';
+    _entriesReviewPage($entries);
 }
 
 function showLoginForm(){
@@ -117,4 +124,28 @@ function requireAdmin(){
         header('Location: /login');
         exit();
     }
+}
+
+function approveSubmission(){
+    requireAdmin();
+    if(isset($_GET['submission_id'])){
+        approve($_GET['submission_id']);
+        showMessageOnNextPage('قبلت التعديل');
+        header('Location: /review-entries');
+        exit;
+    }
+    else{
+        throw new PageNotFoundException();
+    }
+}
+
+function deleteEntry(){
+    requireAdmin();
+    if(isset($_GET['submission_id'])){
+
+    }
+    else{
+        throw new PageNotFoundException();
+    }
+
 }

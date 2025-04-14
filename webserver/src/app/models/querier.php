@@ -1,6 +1,8 @@
 <?php
 
 $cache = array();
+const AGGREGATED_COLUMNS = array('meanings', 'forms','sources', 'examples', 'categories');
+
 
 function getReferences(){
     $sources = array();
@@ -33,129 +35,145 @@ function getOrigins(){
         $origins[] = $row['origin'];
     }
     return $origins;
-}
+}  
 
-WITH latest_approved AS (
-    SELECT *, 
-           ROW_NUMBER() OVER (
-             PARTITION BY entry_id 
-             ORDER BY reviewed_at DESC, submission_id DESC
-           ) AS rn
-    FROM entries
-    WHERE reviewed_at IS NOT NULL
-  )
-  SELECT *
-  FROM latest_approved
-  WHERE rn = 1;
-
-  
-
-function fetchEntries(?string $entryId = null, ?string $status = null, ?bool $latest = false){
+function fetchAllLatestApproved (){
     
     $connection = connect();
-    $query = "WITH 
-    form_data AS (
-        SELECT 
-            submission_id,
-            GROUP_CONCAT(form SEPARATOR '|') AS forms
-        FROM 
-            entry_forms
-        GROUP BY 
-            submission_id
-    ),
-    category_data AS (
-        SELECT 
-            submission_id,
-            GROUP_CONCAT(category SEPARATOR '|') AS categories
-        FROM 
-            entry_categories
-        GROUP BY 
-            submission_id
-    ),
-    example_data AS (
-        SELECT 
-            submission_id,
-            GROUP_CONCAT(example SEPARATOR '|') AS examples
-        FROM 
-            entry_examples
-        GROUP BY 
-            submission_id
-    ),
-    meaning_data AS (
-        SELECT 
-            submission_id,
-            GROUP_CONCAT(meaning SEPARATOR '|') AS meanings
-        FROM 
-            entry_meanings
-        GROUP BY 
-            submission_id
-    ),
-    source_data AS (
-        SELECT 
-            submission_id,
-            GROUP_CONCAT(source SEPARATOR '|') AS sources
-        FROM 
-            entry_sources
-        GROUP BY 
-            submission_id
-    ),
-
-    latest_approved as(select *, row_number() over (partition by entry_id order by reviewed_at desc, submission_id desc) as rn from entries where reviewed_at is not null)
-        
-    latest_approved
-    
-    select * from latest_approved where rn=1;
-
+    $query = "
     SELECT 
         e.*,
         f.forms,
         c.categories,
         ex.examples,
         m.meanings,
-        s.sources,
-        max(submitted_at) as latest
+        s.sources
     FROM 
-        entries e
-    LEFT JOIN form_data f ON e.submission_id = f.submission_id
-    LEFT JOIN category_data c ON e.submission_id = c.submission_id
-    LEFT JOIN example_data ex ON e.submission_id = ex.submission_id
-    LEFT JOIN meaning_data m ON e.submission_id = m.submission_id
-    LEFT JOIN source_data s ON e.submission_id = s.submission_id
-    %s
-    group by e.entry_id;
-    ";
-    $conditions = array();
-    //$conditions
-    if(isset($status)) $conditions[]= "status = ?";
-    if(isset($entryId)) $conditions[]= "entry_id = ?";
-    $clauses = array();
-    if (!empty($conditions)) $clauses[] = "where";
-    $clauses[] = implode(' and ', $conditions);
-    $details = implode(" ", $clauses);
-    $query = sprintf($query, $details );
+        (approved_ranked e
+    LEFT JOIN aggregated_forms f ON e.submission_id = f.submission_id
+    LEFT JOIN aggregated_categories c ON e.submission_id = c.submission_id
+    LEFT JOIN aggregated_examples ex ON e.submission_id = ex.submission_id
+    LEFT JOIN aggregated_meanings m ON e.submission_id = m.submission_id
+    LEFT JOIN aggregated_sources s ON e.submission_id = s.submission_id) where version_rank = 1
+    ;";
     $stmt = mysqli_prepare($connection, $query);
-    if(isset($entryId, $status)) mysqli_stmt_bind_param($stmt, "ss", $entryId, $status);
-    else if(isset($entryId)) mysqli_stmt_bind_param($stmt, "s", $entryId);
-    else if(isset($status)) mysqli_stmt_bind_param($stmt, "s", $status);
     mysqli_execute($stmt );
     $result = mysqli_stmt_get_result($stmt);
-    $entries = array();
-    $headers = array('meanings', 'forms','sources', 'examples', 'categories');
-    $lastEntryId = null;
-    $sameDefinitionGroup = array();
-    while($row = mysqli_fetch_assoc($result)){
-        foreach($headers as $header) if($row[$header]) $row[$header] = explode('|', $row[$header]);
-        $entryId = $row['entry_id'];
-        if($entryId != $lastEntryId){
-            $sameDefinitionGroup = array();
-        }
-        else{
-            $sameDefinitionGroup[] = $row;
-        }
-        $entries[] = $row;
-    }
+    
+    return extractEntriesFromResult($result)[''];
+}
 
+function fetchAllPending(){
+    $connection = connect();
+    $query = "
+    SELECT 
+        pa.a_submission_id,
+        pa.a_entry_id,
+        pa.a_origin,
+        pa.a_original,
+        fa.forms as a_forms,
+        ca.categories as a_categories,
+        xa.examples as a_examples,
+        ma.meanings as a_meanings,
+        sa.sources as a_sources,
+        
+        pa.p_submission_id,
+        pa.p_entry_id,
+        pa.p_origin,
+        pa.p_original,
+        fp.forms as p_forms,
+        cp.categories as p_categories,
+        xp.examples as p_examples,
+        mp.meanings as p_meanings,
+        sp.sources as p_sources
+        
+    FROM 
+        (pending_approved pa
+    LEFT JOIN aggregated_forms fa ON pa.a_submission_id = fa.submission_id
+    LEFT JOIN aggregated_categories ca ON pa.a_submission_id = ca.submission_id
+    LEFT JOIN aggregated_examples xa ON pa.a_submission_id = xa.submission_id
+    LEFT JOIN aggregated_meanings ma ON pa.a_submission_id = ma.submission_id
+    LEFT JOIN aggregated_sources sa ON pa.a_submission_id = sa.submission_id
+
+    LEFT JOIN aggregated_forms fp ON pa.p_submission_id = fp.submission_id
+    LEFT JOIN aggregated_categories cp ON pa.p_submission_id = cp.submission_id
+    LEFT JOIN aggregated_examples xp ON pa.p_submission_id = xp.submission_id
+    LEFT JOIN aggregated_meanings mp ON pa.p_submission_id = mp.submission_id
+    LEFT JOIN aggregated_sources sp ON pa.p_submission_id = sp.submission_id)
+    ;";
+    $stmt = mysqli_prepare($connection, $query);
+    mysqli_execute($stmt );
+    $result = mysqli_stmt_get_result($stmt);
+    
+    return extractEntriesFromResult($result, array('a_', 'p_'));
+}
+
+function fetchLatestApproved ($entryId){
+    
+    $connection = connect();
+    $query = "
+    SELECT 
+        e.*,
+        f.forms,
+        c.categories,
+        ex.examples,
+        m.meanings,
+        s.sources
+    FROM 
+        (approved_ranked e
+    LEFT JOIN aggregated_forms f ON e.submission_id = f.submission_id
+    LEFT JOIN aggregated_categories c ON e.submission_id = c.submission_id
+    LEFT JOIN aggregated_examples ex ON e.submission_id = ex.submission_id
+    LEFT JOIN aggregated_meanings m ON e.submission_id = m.submission_id
+    LEFT JOIN aggregated_sources s ON e.submission_id = s.submission_id) where version_rank = 1 and entry_id = ?
+    ;";
+    $stmt = mysqli_prepare($connection, $query);
+    mysqli_stmt_bind_param($stmt, "s", $entryId);
+    mysqli_execute($stmt );
+    $result = mysqli_stmt_get_result($stmt);
+    
+    return extractEntriesFromResult($result)[''][0];
+}
+
+function extractEntriesFromResult($result, $prefixes = array('')){
+    $entries = array();
+
+    while($row = mysqli_fetch_assoc($result)){
+        $groups = extractEntriesFromRow($row, $prefixes);
+        foreach($groups as $key=>$value){
+            $entries[$key][] = $value;
+        }
+    }
     return $entries;
+}
+
+function extractEntriesFromRow($row, $prefixes){
+    $entryGroups = array();
+    foreach($prefixes as $prefix){
+        $entry = array();
+        foreach($row as $key => $value){
+            if (str_starts_with($key, $prefix)){
+                $normalizedColumnName = substr($key, strlen($prefix));
+                foreach(AGGREGATED_COLUMNS as $aggregatedColumn){
+                    if($normalizedColumnName == $aggregatedColumn){
+                        if($value != null) $value = explode('|', $value);
+                    }
+                }
+                $entry[$normalizedColumnName] = $value;
+            }
+        }
+        $entryGroups[$prefix] = $entry;
+    }
+    return $entryGroups;
+
+}
+
+function approve($submissionId){
+    $connection = connect();
+    $query = 'update entries set approved at = current_timestamp() where submission_id = ?;';
+    $stmt = mysqli_prepare($connection, $query);
+    mysqli_stmt_bind_param($stmt,'i', $submissionId );
+    mysqli_stmt_execute($stmt);
 
 }
 

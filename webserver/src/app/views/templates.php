@@ -285,6 +285,65 @@ class _EntryList extends _Template{
     }
 }
 
+class _ReviewEntryList extends _Template{
+    private $entries;
+    function __construct($entries){
+        $this->entries = $entries;
+    }
+
+    function writeToBuffer(){
+        foreach($this->entries as $entry){
+            ?> 
+            <section> 
+                <?php
+                echo new _ReviewEntry($entry);
+                $id = $entry["submission_id"];
+                ?> 
+                <a href="approve-entry?submission_id=<?= $id ?>">قبول</a> 
+                <a href="view-entry?id=<?= $id ?>">حذف</a> 
+            </section> 
+            <?php
+            
+        }
+    }
+}
+
+class _ReviewEntry extends _Entry{
+    
+
+
+    function writeToBuffer(){
+        ?>
+        <article class="entry-detailed">
+            <h2> الكلمة: <?php $this->echoForms() ?></h2>
+            <p><strong>من اللغة: </strong><?php $this->echoOrigin() ?></p>
+            <p><strong>أصلها: </strong><?php echo $this->entryData['original']; ?></p>
+            
+            <?php if ($this->entryData['meanings']): ?>
+            <p><strong>المعنى المراد:</strong> <?php $this->echoMeanings() ?></p> 
+            <?php endif ?>
+
+            <?php if ($this->entryData['examples']): ?>
+            <h3>سياقات:</h3>
+            <?php $this->echoExamples() ?>
+            <?php endif ?>
+
+            <?php if ($this->entryData['categories']): ?>
+            <h3>التصنيف:</h3>
+            <?php $this->echoCategories() ?>
+            <?php endif ?>
+
+            <?php if ($this->entryData['sources']): ?>
+            <h3>المراجع:</h3>
+            <?php $this->echoSources() ?>
+            <?php endif ?>
+        </article>
+        <?php
+    }
+}
+
+
+
 class _EntryView extends _Template{ 
 
     private $entry;

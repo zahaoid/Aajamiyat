@@ -94,7 +94,8 @@ function sanitizeInput($input){
     return htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
 }
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$uri = rtrim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+if ($uri === '') $uri = '/'; 
 $method = $_SERVER['REQUEST_METHOD'];
 $request = [$uri, $method];
 
@@ -107,5 +108,7 @@ match ($request) {
     ['/login', 'GET'] => showLoginForm(),
     ['/login', 'POST'] => authenticate(),
     ['/logout', 'GET'] => logout(),
+    ['/approve-entry', 'GET'] => approveSubmission(),
+    ['/reject-entry', 'GET'] => deleteEntry(),
     default => throw new PageNotFoundException('[' . implode(', ',$request) .']'),
 };
