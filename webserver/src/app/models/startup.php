@@ -4,24 +4,21 @@
 require_once("connect.php");
 require_once ('config.php');
 
-function printVersionInfo($connection, $config, $migrationFiles){
-    echo( "Current database version = " . getDatabaseVersion($connection, $config) . " current webserver version = " . getAppVersion($migrationFiles) . "\n");
-}
 
-function getAppVersion($migrationFiles): string{
+function getAppVersionAsString($migrations): string{
 
-    return $migrationFiles? parseVersion(end($migrationFiles)) : '0';
+    return $migrations? versionToString(end($migrations)['version']): 0;
 }
 
 // Get the current database version
-function getDatabaseVersion($connection, $config): string
+function getDatabaseVersionAsString($connection, $config): string
 {
     if (!isVersionControlled($connection, $config)) return 0;
-    $query = "SELECT MAX(version) AS currentversion FROM  {$config['versioningTableName']};";
+    $query = "SELECT major, minor, patch FROM  {$config['versioningTableName']} order by major desc, minor desc, patch desc limit 1;";
     $result = mysqli_query($connection, $query);
     $row = $result->fetch_assoc();
     
-    return $row['currentversion']? $row['currentversion']: '0';
+    return $row? versionToString($row) : 0;
 }
 
 // Check if the database is version-controlled
@@ -35,7 +32,14 @@ function isVersionControlled($connection, $config)
 // Create the version control table
 function createVersionControlTable($connection, $config)
 {
-    $query = "CREATE TABLE {$config['versioningTableName'] }(version VARCHAR(10) PRIMARY KEY, dateapplied TIMESTAMP NOT NULL, sql_query TEXT NOT NULL);";
+    $query = "CREATE TABLE {$config['versioningTableName'] } (
+    major TINYINT UNSIGNED NOT NULL,
+    minor TINYINT UNSIGNED NOT NULL,
+    patch TINYINT UNSIGNED NOT NULL,
+    dateapplied TIMESTAMP NOT NULL Default current_timestamp(),
+    applied_sql TEXT NOT NULL,
+    PRIMARY KEY (major, minor, patch)
+    );";
     mysqli_query($connection, $query);
     echo ("Version control table created successfully.\n");
 }
@@ -61,10 +65,12 @@ function nukeDatabase($connection, $config){
 function initializeDatabase($config){
     $errorFlag = false;
     try{
-        $migrationFiles =  loadMigrationFiles($config);
+        $migrations =  loadMigrations($config);
         $connection = connect();
+        $databaseVersion = getDatabaseVersionAsString($connection, $config);
+        $appVersion = getAppVersionAsString($migrations);
         echo ("Checking compatibilty with the database...\n");
-        printVersionInfo($connection, $config, $migrationFiles);
+        echo( "Current database version = " . $databaseVersion . " current webserver version = " . $appVersion . "\n");
         if (!isVersionControlled($connection, $config)) {
             echo ("Database is not version controlled, attempting to nuke the database..\n");
             nukeDatabase($connection, $config);
@@ -74,13 +80,17 @@ function initializeDatabase($config){
             echo ("The database has been reset and is now configured properly.\n");
         } else {
             echo ("Database is already version controlled.\n");
-            if(getAppVersion($migrationFiles) < getDatabaseVersion($connection, $config)){
+            if(version_compare($appVersion , $databaseVersion, '<')){
                 throw new Exception("This app version is behind the database version!");
             }
         }
         
         // Migrate the database if there are migration scripts
-        migrate($connection, $config, $migrationFiles);                  
+        $newMigrations = array_filter($migrations, function ($migration) use ($databaseVersion) {
+            return version_compare(versionToString($migration['version']) , $databaseVersion, '>');
+        });
+
+        migrate($connection, $config, $newMigrations);                  
         createWebUser( $connection, $config);
     }
     catch(Exception $e) {  
@@ -94,46 +104,58 @@ function initializeDatabase($config){
     }
 }
 
-function loadMigrationFiles($config){
+function loadMigrations($config){
 
     echo ("Checking for migration scripts...\n");
 
     // Get the list of migration files
-    $migrationFiles = array_filter(scandir($config['migrationsFolderPath']), function($path){
+    $migrationFileNames = array_filter(scandir($config['migrationsFolderPath']), function($path){
         return str_ends_with($path, '.sql');
     });
 
+    $migrations = array();
+
+    // load files content into an assocsiative array
+    foreach($migrationFileNames as $migrationFileName){
+         $version = parseVersionFromFilename($migrationFileName);
+         $migrationSql = readSqlFile($config['migrationsFolderPath'] . DIRECTORY_SEPARATOR . $migrationFileName);
+         $migration = array();
+         $migration['version'] = $version;
+         $migration['sql'] = $migrationSql;
+         $migrations[] = $migration;
+    }
+
     // Sort the migrations by version
-    usort($migrationFiles, function ($a, $b) {
-        return version_compare(parseVersion($a) , parseVersion($b) );
+    usort($migrations, function ($a, $b) {
+        $aVersionString = versionToString($a['version']);
+        $bVersionString = versionToString($b['version']);
+        return version_compare($aVersionString , $bVersionString );
     });
+
     echo ("available migration script: \n") ;
-    print_r($migrationFiles);
-    return $migrationFiles;
+    $versions = array_column( $migrations,'version');
+    $versions = array_map(function($e){return versionToString($e); }, $versions);
+    print_r($versions);
+    return $migrations;
 
 }
 
 
 
 // Apply migrations based on available migration files
-function migrate($connection, $config, $migrationFiles)
+function migrate($connection, $config, $newMigrations)
 {
-    $databaseVersion = getDatabaseVersion($connection, $config);
-
-    $newMigrations = array_filter($migrationFiles, function ($file) use ($databaseVersion) {
-        return version_compare(parseVersion($file) , $databaseVersion) > 0;
-    });
 
     if ($newMigrations) {
         echo ("new SQL migration scripts found.\n");
         $migrationSuccessful = true;
 
-        foreach ($newMigrations as $file) {
+        foreach ($newMigrations as $newMigration) {
             try {
-                applyMigration($connection, $config, $file);
+                applyMigration($connection, $config, $newMigration);
             } catch (Exception $e) {
                 $migrationSuccessful = false;
-                throw new Exception ("Migration failed for {$file}: " . $e->getMessage() . "\n");
+                throw new Exception ("Migration failed for " . versionToString($newMigration['version']) . ": " . $e . "\n");
             }
         }
 
@@ -149,30 +171,41 @@ function readSqlFile($path){
     return file_get_contents($path);
 
 }
+
 // Apply a specific migration file to the database
-function applyMigration($connection, $config, $file){
-    $version = parseVersion(filename: $file);
-    $migrationSql = readSqlFile($config['migrationsFolderPath'] . DIRECTORY_SEPARATOR . $file);
-    echo ("Applying " . $file . "\n");
+function applyMigration($connection, $config, $migration){
+    $version = $migration['version'];
+    $migrationSql = $migration['sql'];
+    echo ("Applying migration: " . versionToString($migration['version']) . "\n");
     // Apply the migration SQL
     if(mysqli_query($connection, $migrationSql)){
 
         // Log the migration in the schema_change_log table
-        $dateApplied = date('Y-m-d H:i:s');
-        $logQuery = "INSERT INTO {$config['versioningTableName']} (version, sql_query, dateapplied) VALUES (?, ?, ?)";
+        $logQuery = "INSERT INTO {$config['versioningTableName']} (major, minor, patch, applied_sql) VALUES (?, ?, ?, ?)";
         $stmt = mysqli_prepare($connection, $logQuery);
-        mysqli_stmt_bind_param($stmt, "sss", $version, $migrationSql, $dateApplied);
+        mysqli_stmt_bind_param($stmt, "iiis", $version['major'], $version['minor'], $version['patch'], $migrationSql);
         mysqli_stmt_execute($stmt);
-        echo ("Migration version " . $version . " applied successfully\n");
+        echo ("Migration " . versionToString($version ) . " applied successfully\n");
     }
 }
 
 // Parse version from the migration file name
-function parseVersion($filename): string
+// Assuming the filename is of the format 'version.sql' (e.g., '1.sql', '2.sql')
+
+function parseVersionFromFilename($filename): array
 {
-    // Assuming the filename is of the format 'version.sql' (e.g., '1.sql', '2.sql')
-    $version = pathinfo($filename, PATHINFO_FILENAME);
-    return $version;
+    $name = pathinfo($filename, PATHINFO_FILENAME);
+    $version = explode(".", $name);
+    if(count($version) > 3) throw new Exception("Invalid version format: too many segments in file: '$filename'");
+    $normalizedVersion = array();
+    $normalizedVersion['major'] = (int)($version[0] ?? 0);
+    $normalizedVersion['minor'] = (int)($version[1] ?? 0);
+    $normalizedVersion['patch'] = (int)($version[2] ?? 0);
+    return $normalizedVersion;
+}
+
+function versionToString(array $version): string {
+    return "{$version['major']}.{$version['minor']}.{$version['patch']}";
 }
 
 // Close the database connection

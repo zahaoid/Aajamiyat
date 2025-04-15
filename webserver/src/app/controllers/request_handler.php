@@ -88,11 +88,11 @@ function showMessageOnNextPage(string $message){
 
 function showReviewPage(){
     requireAdmin();
-    $entries = fetchAllPending()['a_'];
+    $entries = fetchAllPending();
     // echo '<pre>';
     // echo print_r($entries,true);
     // echo '</pre>';
-    _entriesReviewPage($entries);
+    _entriesReviewPage($entries['a_'], $entries['p_']);
 }
 
 function showLoginForm(){

@@ -47,8 +47,8 @@ function _loginForm(){
     echo $_base;
 }
 
-function _entriesReviewPage($entries){
-    $_listing = new _ReviewEntryList($entries);
+function _entriesReviewPage($approvedEntries, $pendingEntries){
+    $_listing = new _ReviewEntryList($approvedEntries, $pendingEntries);
     $_main = new _Main($_listing);
     $_base = new _Base($_main);
     echo $_base;

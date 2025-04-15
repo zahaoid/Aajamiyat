@@ -60,7 +60,7 @@ function fetchAllLatestApproved (){
     mysqli_execute($stmt );
     $result = mysqli_stmt_get_result($stmt);
     
-    return extractEntriesFromResult($result)[''];
+    return extractEntriesFromResult($result)['']?? [];
 }
 
 function fetchAllPending(){
@@ -104,8 +104,8 @@ function fetchAllPending(){
     $stmt = mysqli_prepare($connection, $query);
     mysqli_execute($stmt );
     $result = mysqli_stmt_get_result($stmt);
-    
-    return extractEntriesFromResult($result, array('a_', 'p_'));
+    $entries = extractEntriesFromResult($result, array('a_', 'p_'));
+    return empty($entries)? array('a_' => [], 'p_' => []) : $entries;
 }
 
 function fetchLatestApproved ($entryId){
@@ -132,7 +132,7 @@ function fetchLatestApproved ($entryId){
     mysqli_execute($stmt );
     $result = mysqli_stmt_get_result($stmt);
     
-    return extractEntriesFromResult($result)[''][0];
+    return extractEntriesFromResult($result)[''][0]?? [];
 }
 
 function extractEntriesFromResult($result, $prefixes = array('')){
@@ -156,7 +156,7 @@ function extractEntriesFromRow($row, $prefixes){
                 $normalizedColumnName = substr($key, strlen($prefix));
                 foreach(AGGREGATED_COLUMNS as $aggregatedColumn){
                     if($normalizedColumnName == $aggregatedColumn){
-                        if($value != null) $value = explode('|', $value);
+                        $value = $value? explode('|', $value) : [];
                     }
                 }
                 $entry[$normalizedColumnName] = $value;
@@ -170,7 +170,7 @@ function extractEntriesFromRow($row, $prefixes){
 
 function approve($submissionId){
     $connection = connect();
-    $query = 'update entries set approved at = current_timestamp() where submission_id = ?;';
+    $query = 'update entries set approved_at = current_timestamp where submission_id = ?;';
     $stmt = mysqli_prepare($connection, $query);
     mysqli_stmt_bind_param($stmt,'i', $submissionId );
     mysqli_stmt_execute($stmt);

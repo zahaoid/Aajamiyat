@@ -2,13 +2,14 @@
 
 // Database credentials
 
-require_once 'errorHandler.php';
+// require_once 'errorHandler.php';
 require_once 'request_handler.php';
 require_once '../views/templates.php';
 require_once '../views/views.php';
 require_once '../models/config.php';
 require_once '../models/connect.php';
 require_once '../models/querier.php';
+require_once '../../helpers.php';
 
 ob_start();
 session_start();

@@ -286,18 +286,31 @@ class _EntryList extends _Template{
 }
 
 class _ReviewEntryList extends _Template{
-    private $entries;
-    function __construct($entries){
-        $this->entries = $entries;
+    private $approvedEntries;
+    private $pendingEntries;
+    private $entriesCount;
+    function __construct($approvedEntries, $pendingEntries){
+        $this->entriesCount = count($approvedEntries);
+        if($this->entriesCount != count($pendingEntries)){
+            throw new InvalidArgumentException("Entries provided have different lengths");
+        }
+        $this->approvedEntries = $approvedEntries;
+        $this->pendingEntries = $pendingEntries;
     }
 
     function writeToBuffer(){
-        foreach($this->entries as $entry){
+        for($i = 0 ; $i < $this->entriesCount ; $i++){
+            $approvedEntry = $this->approvedEntries[$i];
+            $pendingEntry = $this->pendingEntries[$i];
+            $newEntry = $approvedEntry['submission_id'] == null;
+            $contextMessage = $newEntry? 'لفظة جديدة' : 'تعديل';
             ?> 
+            <p><?= $contextMessage ?></p>
             <section> 
                 <?php
-                echo new _ReviewEntry($entry);
-                $id = $entry["submission_id"];
+                if (!$newEntry) echo new _EntryDetailed($approvedEntry);
+                echo new _EntryDetailed($pendingEntry);
+                $id = $pendingEntry["submission_id"];
                 ?> 
                 <a href="approve-entry?submission_id=<?= $id ?>">قبول</a> 
                 <a href="view-entry?id=<?= $id ?>">حذف</a> 
@@ -305,40 +318,6 @@ class _ReviewEntryList extends _Template{
             <?php
             
         }
-    }
-}
-
-class _ReviewEntry extends _Entry{
-    
-
-
-    function writeToBuffer(){
-        ?>
-        <article class="entry-detailed">
-            <h2> الكلمة: <?php $this->echoForms() ?></h2>
-            <p><strong>من اللغة: </strong><?php $this->echoOrigin() ?></p>
-            <p><strong>أصلها: </strong><?php echo $this->entryData['original']; ?></p>
-            
-            <?php if ($this->entryData['meanings']): ?>
-            <p><strong>المعنى المراد:</strong> <?php $this->echoMeanings() ?></p> 
-            <?php endif ?>
-
-            <?php if ($this->entryData['examples']): ?>
-            <h3>سياقات:</h3>
-            <?php $this->echoExamples() ?>
-            <?php endif ?>
-
-            <?php if ($this->entryData['categories']): ?>
-            <h3>التصنيف:</h3>
-            <?php $this->echoCategories() ?>
-            <?php endif ?>
-
-            <?php if ($this->entryData['sources']): ?>
-            <h3>المراجع:</h3>
-            <?php $this->echoSources() ?>
-            <?php endif ?>
-        </article>
-        <?php
     }
 }
 
