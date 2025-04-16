@@ -12,7 +12,8 @@ function customErrorHandler($errno, $errstr, $errfile, $errline) {
 }
 
 function customExceptionHandler($e){
-    while( ob_get_level() > 0) ob_end_clean(); //this cleans and ends all of the nested buffers
+    //this cleans and ends all of the nested output buffers
+    while( ob_get_level() > 0) ob_end_clean(); 
     if ($e instanceof PageNotFoundException) {
         showNotFoundPage() ;
     }

@@ -3,26 +3,27 @@
 const FLAGS = array(
     "التركية" => "🇹🇲🇹🇷",
     "الفارسية" => "🇮🇷",
-    "الإنجليزية" => "🇬🇧🇺🇸",   // English
-    "الفرنسية" => "🇫🇷",       // French
-    "الإسبانية" => "🇪🇸",      // Spanish
-    "الألمانية" => "🇩🇪",      // German
-    "الإيطالية" => "🇮🇹",      // Italian
-    "البرتغالية" => "🇵🇹🇧🇷",  // Portuguese
-    "الروسية" => "🇷🇺",        // Russian
-    "الهندية" => "🇮🇳",       // Hindi
-    "الصينية" => "🇨🇳",       // Chinese (Simplified)
-    "اليابانية" => "🇯🇵",     // Japanese
-    "الكورية" => "🇰🇷",       // Korean
-    "البولندية" => "🇵🇱",     // Polish
-    "الرومانية" => "🇷🇴",     // Romanian
-    "اليونانية" => "🇬🇷",     // Greek
-    "السويدية" => "🇸🇪",      // Swedish
-    "النرويجية" => "🇳🇴",     // Norwegian
-    "الدنماركية" => "🇩🇰",    // Danish
-    "الهولندية" => "🇳🇱",     // Dutch
-    "السويسرية" => "🇨🇭",     // Swiss
+    "الإنجليزية" => "🇬🇧🇺🇸",
+    "الفرنسية" => "🇫🇷",
+    "الإسبانية" => "🇪🇸",
+    "الألمانية" => "🇩🇪",
+    "الإيطالية" => "🇮🇹",
+    "البرتغالية" => "🇵🇹🇧🇷",
+    "الروسية" => "🇷🇺",
+    "الهندية" => "🇮🇳",
+    "الصينية" => "🇨🇳",
+    "اليابانية" => "🇯🇵",
+    "الكورية" => "🇰🇷",
+    "البولندية" => "🇵🇱",
+    "الرومانية" => "🇷🇴",
+    "اليونانية" => "🇬🇷",
+    "السويدية" => "🇸🇪",
+    "النرويجية" => "🇳🇴",
+    "الدنماركية" => "🇩🇰",
+    "الهولندية" => "🇳🇱",
+    "السويسرية" => "🇨🇭",
 );
+
 
 abstract class _Template{
 
@@ -35,12 +36,7 @@ abstract class _Template{
         }
 }
 
-// class _Empty extends _Template{
 
-//     function writeToBuffer(){
-
-//     }
-// }
 class Navigation extends _Template{
     function writeToBuffer(){
         ?>
@@ -57,8 +53,8 @@ class Navigation extends _Template{
                         </a>
                     </li>
                     <li>
-                        <a href="https://github.com/zahaoid/web-project">
-                        القِتهب
+                        <a href="review-entries">
+                        صفحة الأدمن
                         </a>
                     </li>
                     <?php if (isset($_SESSION['admin'])) : ?>
@@ -67,7 +63,18 @@ class Navigation extends _Template{
                         خروج
                         </a>
                     </li>
+                    <?php else: ?>
+                    <li>
+                        <a href="login">
+                        دخول
+                        </a>
+                    </li>
                     <?php endif; ?>
+                    <li>
+                        <a href="https://github.com/zahaoid/Aajamiyat">
+                        القِتهب
+                        </a>
+                    </li>
                 </ul>
             </nav>
         <?php
@@ -92,6 +99,7 @@ class _Main extends _Template{
                 <div class="messages">
                     <?php foreach ($_SESSION['messages'] as $message): ?>
                     <p><?= $message ?></p>
+                    <script>alert("<?= $message ?>")</script>
                     <?php endforeach; ?>
                 </div>
                 <?php unset($_SESSION['messages']) ; endif; ?>
@@ -100,6 +108,7 @@ class _Main extends _Template{
                 <div id="content"><?= $this->_main ?></div>
             </main>
             <footer>
+                حقوق المراجع محفوظة لأصحابها
             </footer>
         <?php
     }
@@ -305,15 +314,16 @@ class _ReviewEntryList extends _Template{
             $newEntry = $approvedEntry['submission_id'] == null;
             $contextMessage = $newEntry? 'لفظة جديدة' : 'تعديل';
             ?> 
-            <p><?= $contextMessage ?></p>
+            <h3><?= $contextMessage ?></h3>
             <section> 
                 <?php
                 if (!$newEntry) echo new _EntryDetailed($approvedEntry);
+                ?> <br> <?php
                 echo new _EntryDetailed($pendingEntry);
                 $id = $pendingEntry["submission_id"];
                 ?> 
                 <a href="approve-entry?submission_id=<?= $id ?>">قبول</a> 
-                <a href="view-entry?id=<?= $id ?>">حذف</a> 
+                <a href="reject-entry?submission_id=<?= $id ?>">حذف</a> 
             </section> 
             <?php
             
@@ -353,9 +363,9 @@ class _DataList extends _Template{
     }
     function writeToBuffer(){
         ?>
-            <datalist id=<?= $this->name ?>>
-                <?php foreach($this->list as $element): ?>
-                    <option value=<?= $element ?>></option>
+            <datalist id= "<?=$this->name?>" >
+                <?php foreach($this->list as $element):?>
+                    <option value= "<?= $element ?>" ></option>
                 <?php endforeach; ?>
             </datalist>
         <?php
@@ -376,6 +386,7 @@ class _EntrySubmissionForm extends _Template{
             <fieldset>
                 <legend>اللفظة:</legend>
                 <?= new _DynamicTextInput(attributes: array('name' => 'forms', 'required' => true, 'maxlength' => "255"), preloadedValues: $this->entry['forms']?? null ) ?>
+                <p>۞ خانة إلزامية</p>
             </fieldset>
             <fieldset>
                 <legend>معناها المراد:</legend>
@@ -385,8 +396,10 @@ class _EntrySubmissionForm extends _Template{
                 <legend>أصل اللفظة:</legend>
                 <label for="original">الكلمة مكتوبة بلغتها:</label>
                 <input type="text" id="original" name="original" maxlength="255" <?php if ($this->entry): ?> value="<?= $this->entry['original'] ?>" <?php endif ?> required>
+                <p>۞ خانة إلزامية</p>
                 <label for="origin">من اللغة:</label>
                 <input type="text" id="origin" name="origin" list="origins" maxlength="255" <?php if ($this->entry): ?> value="<?= $this->entry['origin'] ?>" <?php endif ?>  required>
+                <p>۞ خانة إلزامية</p>
                 <?= new _DataList(name: 'origins', list: $this->suggestionLists['origins']) ?>
             </fieldset>
             <fieldset>
@@ -403,8 +416,33 @@ class _EntrySubmissionForm extends _Template{
                 <?= new _DynamicTextInput(attributes: array('name' => 'references', 'list' => 'references', 'maxlength' => "255"), preloadedValues: $this->entry['sources']?? null) ?>
                 <?= new _DataList(name: 'references', list: $this->suggestionLists['sources']) ?>
             </fieldset>
-            <button class="submit-button">رصد</button>
+            <button class="submit-button" onclick="validate()">رصد</button>
         </form>
+
+        <script>
+            function validate(){
+                const requiredInputs = document.querySelectorAll('[required]');
+                const map = {
+                    'forms[]': 'اللفظة',
+                    'origin': 'أصل الكلمة',
+                    'original': 'لغة الكلمة'
+                }
+
+                emptyInputs = [];
+                requiredInputs.forEach((element, index) => {
+                    if (element.value.trim() == "") {
+                        emptyInputs.push(map[element.name]);
+                    }
+                });
+                if (emptyInputs.length > 0){
+                    message = 'تركتَ بعض الخانات الإلزامية فارغة: ';
+                    emptyInputs.forEach(element => {message += '\n' + element})
+                    alert(message);
+                    return false;
+                }
+                return true;
+            }
+        </script>
         <?php
     }
 }

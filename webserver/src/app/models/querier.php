@@ -1,13 +1,12 @@
 <?php
 
-$cache = array();
 const AGGREGATED_COLUMNS = array('meanings', 'forms','sources', 'examples', 'categories');
 
 
 function getReferences(){
     $sources = array();
     $connection = connect();
-    $references_query = 'select source from entry_sources';
+    $references_query = 'select DISTINCT source from entry_sources';
     $result = mysqli_query($connection, $references_query);
     while ($row = mysqli_fetch_assoc($result)){
         $sources[] = $row['source'];
@@ -18,7 +17,7 @@ function getReferences(){
 function getCategories(){
     $categories = array();
     $connection = connect();
-    $categories_query = 'select category from entry_categories';
+    $categories_query = 'select DISTINCT category from entry_categories';
     $result = mysqli_query($connection, $categories_query);
     while ($row = mysqli_fetch_assoc($result)){
         $categories[] = $row['category'];
@@ -29,7 +28,7 @@ function getCategories(){
 function getOrigins(){
     $origins = array();
     $connection = connect();
-    $origins_query = 'select origin from entries';
+    $origins_query = 'select DISTINCT origin from entries';
     $result = mysqli_query($connection, $origins_query);
     while ($row = mysqli_fetch_assoc($result)){
         $origins[] = $row['origin'];
@@ -175,6 +174,14 @@ function approve($submissionId){
     mysqli_stmt_bind_param($stmt,'i', $submissionId );
     mysqli_stmt_execute($stmt);
 
+}
+
+function deletePending($submissionId){
+    $connection = connect();
+    $query = 'delete from entries where submission_id = ? and approved_at is null;';
+    $stmt = mysqli_prepare($connection, $query);
+    mysqli_stmt_bind_param($stmt,'i', $submissionId );
+    mysqli_stmt_execute($stmt);
 }
 
 function submitNewEntry($entryData){

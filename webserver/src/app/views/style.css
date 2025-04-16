@@ -5,11 +5,13 @@
     font-family: "Noto Sans Arabic", sans-serif;
 }
   
+/* This is used to replace the default list element "dot" symbol */
 .categories li:before {
       content: ">";
       padding-right: 0.5em;
   }
 
+/* This is used to replace the default list element "dot" symbol */
 .categories li{
     list-style: none;
     padding-left: 1em;

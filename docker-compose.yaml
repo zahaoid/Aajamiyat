@@ -1,5 +1,3 @@
-
-
 services:
   webserver:
     build: ./webserver/
