@@ -12,14 +12,14 @@ function connect(){
     $attempt = 0;
     while ($attempt < $maxRetries) {
         try {
-            echo "Trying to connect to database: ". $config['dbName'] . "\n";
+            error_log( "Trying to connect to database: ". $config['dbName'] . "\n");
             $connection = mysqli_connect($config['sqlHostAddress'], $config['superUsername'], $config['superPassword'], $config['dbName']);
             if (!$connection) {
                 throw new Exception("Connection failed: " . mysqli_connect_error());
             }
             return $connection;
         } catch (Exception $e) {
-            echo $e;
+            error_log( $e );
             $attempt++;
             $retryDelay *=2;
             if ($attempt < $maxRetries) {
