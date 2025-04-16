@@ -1,0 +1,8 @@
+:443 {
+    root * /var/www/html
+    rewrite * /app/controllers/index.php{uri}
+    php_fastcgi php-fpm:9000
+    handle_errors {
+        respond "السيرفر لا يعمل إما للصيانة أو بسبب خلل" 503
+    }
+}

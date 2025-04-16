@@ -1,5 +1,0 @@
-RewriteEngine On
-
-RewriteCond %{REQUEST_URI} !^/app/controllers/index.php$
-RewriteCond %{REQUEST_URI} !^/favicon.ico$
-RewriteRule ^(.*)$ /app/controllers/index.php [L]

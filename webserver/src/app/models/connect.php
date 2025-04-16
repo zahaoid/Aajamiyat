@@ -12,18 +12,20 @@ function connect(){
     $attempt = 0;
     while ($attempt < $maxRetries) {
         try {
+            echo "Trying to connect to database: ". $config['dbName'] . "\n";
             $connection = mysqli_connect($config['sqlHostAddress'], $config['superUsername'], $config['superPassword'], $config['dbName']);
             if (!$connection) {
                 throw new Exception("Connection failed: " . mysqli_connect_error());
             }
-            return $connection; // Exit the function if connection is successful
+            return $connection;
         } catch (Exception $e) {
+            echo $e;
             $attempt++;
             $retryDelay *=2;
             if ($attempt < $maxRetries) {
-                sleep($retryDelay); // Wait for 3 seconds before retrying
+                sleep($retryDelay);
             } else {
-                throw new Exception("Connection failed after {$maxRetries} attempts: " . $e->getMessage());
+                throw new Exception("Connection failed after {$maxRetries} attempts: " . $e);
             }
         }
     }
