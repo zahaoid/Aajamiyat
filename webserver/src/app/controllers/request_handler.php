@@ -14,13 +14,14 @@ function recieveEntrySubmission(){
         $data["meanings"] = $_POST["meanings"] ?? null;
         $data["sources"] = $_POST["references"] ?? null;
         $data["categories"] = $_POST["categories"] ?? null;
-        $newEntryId = submitNewEntry( $data);
+        $newEntryId = submitNewEntry( $data, isAdmin());
+        $requireReviewMessage = isAdmin()? '' : " وهي قيد المراجعة";
         if($data["id"] == null){
-            showMessageOnNextPage("رُصِدَت اللفظة وهي قيد المراجعة");
+            showMessageOnNextPage("رُصِدَت اللفظة" . $requireReviewMessage);
             header('Location:/');
         }
         else{
-            showMessageOnNextPage("عُدِّلَت اللفظة وهي قيد المراجعة");
+            showMessageOnNextPage("عُدِّلَت اللفظة" . $requireReviewMessage);
             header('Location:/view-entry?id=' . $newEntryId);
         }
     }
@@ -121,6 +122,10 @@ function requireAdmin(){
         header('Location: /login');
         exit();
     }
+}
+
+function isAdmin(){
+    return isset($_SESSION['admin']);
 }
 
 function approveSubmission(){

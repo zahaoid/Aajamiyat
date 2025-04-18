@@ -184,12 +184,12 @@ function deletePending($submissionId){
     mysqli_stmt_execute($stmt);
 }
 
-function submitNewEntry($entryData){
+function submitNewEntry($entryData, bool $privileged = false){
     $connection = connect();
     $entryId = $entryData["id"]?? $entryData['forms'][0];
     mysqli_begin_transaction($connection);
     try{
-        $submissionId = insertEntry($connection, $entryId, $entryData['origin'], $entryData['original']);
+        $submissionId = insertEntry($connection, $entryId, $entryData['origin'], $entryData['original'], $privileged);
         insertForms($connection, $submissionId, $entryData['forms']);
         if(isset($entryData['meanings']))
             insertMeanings($connection, $submissionId, $entryData['meanings']);
@@ -208,10 +208,11 @@ function submitNewEntry($entryData){
     return $entryId;
 }
 
-function insertEntry(mysqli $connection, string $entryId, string $origin, string $original){
-    static $entryQuery = 'insert into entries (entry_id, origin, original) values (?, ?, ?);';
+function insertEntry(mysqli $connection, string $entryId, string $origin, string $original, bool $privileged){
+    static $entryQuery = 'insert into entries (entry_id, origin, original, approved_at) values (?, ?, ?, ?);';
+    $approvedAt = $privileged? 'current_timestamp' : null;
     $stmt = mysqli_prepare($connection, $entryQuery);
-    $stmt->bind_param('sss', $entryId, $origin, $original) ;
+    $stmt->bind_param('ssss', $entryId, $origin, $original, $approvedAt) ;
     $stmt->execute();
     $submissionId = $connection->insert_id;
     static $IdQuery = 'update entries set entry_id = ? where submission_id = ?;';
