@@ -209,10 +209,9 @@ function submitNewEntry($entryData, bool $privileged = false){
 }
 
 function insertEntry(mysqli $connection, string $entryId, string $origin, string $original, bool $privileged){
-    static $entryQuery = 'insert into entries (entry_id, origin, original, approved_at) values (?, ?, ?, ?);';
-    $approvedAt = $privileged? 'current_timestamp' : null;
+    static $entryQuery = sprintf('insert into entries (entry_id, origin, original%s) values (?, ?, ?%s);', $privileged? 'approved_at' : '', $privileged? 'current_timestamp' : '');
     $stmt = mysqli_prepare($connection, $entryQuery);
-    $stmt->bind_param('ssss', $entryId, $origin, $original, $approvedAt) ;
+    $stmt->bind_param('sss', $entryId, $origin, $original) ;
     $stmt->execute();
     $submissionId = $connection->insert_id;
     static $IdQuery = 'update entries set entry_id = ? where submission_id = ?;';
