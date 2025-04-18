@@ -231,6 +231,9 @@ class _EntrySummary extends _Entry{
                 <h2><?php $this->echoForms() ?></h2>
                 <p><strong>من اللغة: </strong><?php $this->echoOrigin() ?></p>
                 <p><strong>أصلها: </strong><?php echo $this->entryData['original']; ?></p>
+                <?php if ($this->entryData['meanings']): ?>
+                <p><strong>المعنى المراد:</strong> <?php $this->echoMeanings() ?></p> 
+                <?php endif ?>
             </div>
         </article>
         <?php
