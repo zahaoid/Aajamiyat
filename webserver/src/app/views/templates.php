@@ -54,7 +54,7 @@ class Navigation extends _Template{
                     </li>
                     <li>
                         <a href="review-entries">
-                        صفحة الأدمن
+                        صفحة المراجعة
                         </a>
                     </li>
                     <?php if (isset($_SESSION['admin'])) : ?>
@@ -386,7 +386,7 @@ class _EntrySubmissionForm extends _Template{
             <fieldset>
                 <legend>اللفظة:</legend>
                 <?= new _DynamicTextInput(attributes: array('name' => 'forms', 'required' => true, 'maxlength' => "255"), preloadedValues: $this->entry['forms']?? null ) ?>
-                <p>۞ خانة إلزامية</p>
+                <p>۞ فراغ إلزامي</p>
             </fieldset>
             <fieldset>
                 <legend>معناها المراد:</legend>
@@ -396,10 +396,10 @@ class _EntrySubmissionForm extends _Template{
                 <legend>أصل اللفظة:</legend>
                 <label for="original">الكلمة مكتوبة بلغتها:</label>
                 <input type="text" id="original" name="original" maxlength="255" <?php if ($this->entry): ?> value="<?= $this->entry['original'] ?>" <?php endif ?> required>
-                <p>۞ خانة إلزامية</p>
+                <p>۞ فراغ إلزامي</p>
                 <label for="origin">من اللغة:</label>
                 <input type="text" id="origin" name="origin" list="origins" maxlength="255" <?php if ($this->entry): ?> value="<?= $this->entry['origin'] ?>" <?php endif ?>  required>
-                <p>۞ خانة إلزامية</p>
+                <p>۞ فراغ إلزامي</p>
                 <?= new _DataList(name: 'origins', list: $this->suggestionLists['origins']) ?>
             </fieldset>
             <fieldset>
@@ -435,7 +435,7 @@ class _EntrySubmissionForm extends _Template{
                     }
                 });
                 if (emptyInputs.length > 0){
-                    message = 'تركتَ بعض الخانات الإلزامية فارغة: ';
+                    message = 'تركتَ بعض الفراغات الإلزامية بلا ملء: ';
                     emptyInputs.forEach(element => {message += '\n' + element})
                     alert(message);
                     return false;
