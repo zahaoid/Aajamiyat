@@ -385,7 +385,7 @@ class _EntrySubmissionForm extends _Template{
 
     function writeToBuffer(){
         ?>
-        <form method="post">
+        <form id="entry-submission-form" method="post">
             <fieldset>
                 <legend>اللفظة:</legend>
                 <?= new _DynamicTextInput(attributes: array('name' => 'forms', 'required' => true, 'maxlength' => "255"), preloadedValues: $this->entry['forms']?? null ) ?>
@@ -419,11 +419,11 @@ class _EntrySubmissionForm extends _Template{
                 <?= new _DynamicTextInput(attributes: array('name' => 'references', 'list' => 'references', 'maxlength' => "255"), preloadedValues: $this->entry['sources']?? null) ?>
                 <?= new _DataList(name: 'references', list: $this->suggestionLists['sources']) ?>
             </fieldset>
-            <button class="submit-button" onclick="validate()">رصد</button>
+            <button type='button' class="submit-button" onclick="validateAndSubmit()">رصد</button>
         </form>
 
         <script>
-            function validate(){
+            function validateAndSubmit(){
                 const requiredInputs = document.querySelectorAll('[required]');
                 const map = {
                     'forms[]': 'اللفظة',
@@ -441,9 +441,10 @@ class _EntrySubmissionForm extends _Template{
                     message = 'تركتَ بعض الفراغات الإلزامية بلا ملء: ';
                     emptyInputs.forEach(element => {message += '\n' + element})
                     alert(message);
-                    return false;
                 }
-                return true;
+                else{
+                    document.getElementById("entry-submission-form").submit();
+                }
             }
         </script>
         <?php
